@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='files/bootstrap.min.css') }}">
+    <script src="{{url_for('static', filename='files/jquery-3.4.1.slim.min.js')}}"></script>
+    <title>Title</title>
+    <style>
+   .bodyColor {
+  background-color: 	#E8E8E8;
+}
+   .purpleColor {
+       background-color: 	#aa66cc;
+   }
+    .limeColor {
+       background-color: #dce775;
+   }
+        .brownColor {
+       background-color: #a1887f;
+   }
+
+
+</style>
+{% set myBgHexList = ["bg-warning","purpleColor", "bg-primary", "limeColor", "brownColor"] %}
+
+</head>
+<body  class="bg-white" >
+<br>
+<div class="p-0" style="padding-left: 10px"><strong>Please Complete the following survey items:</strong></div>
+{#    <em>(Note that items use the following 7-point Likert-scale)</em></div>#}
+{#    <br>#}
+{#<div class="p-0" style="padding-left: 10px">Y</div>#}
+        {%  set j = namespace(value=0) %}
+         <form action="/processSurveyAndEndStudymas" method="post">
+{#                     "human"#}
+                     {%  if protocol == "human-mas" %}
+                          <div class="text-info" style="padding-left: 10px">
+                              How did you choose your allocation strategy? Please rate from <mark>1</mark> (<strong>low importance</strong> for you) to <mark>5</mark> (<strong>high importance</strong> for you)
+                         </div>
+                         <div style="padding-left: 20px">
+                             <div class="form-group">
+                                 <div class="row">
+                                        <div class="col-3 p-0">
+                                            <div class="d-flex align-content-start flex-wrap p-0 border border-secondary border-left-0 border-top-0 border-bottom-0 border-right-0">
+                                                 <div class="p-0"> My confidence levels for task types: </div>
+                                                <input type="text" style="width: 30px; height: 30px" maxlength="1"   id="intLimitTextBox100" value="" name="My_CL" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-3 p-0">
+                                        <div class="d-flex align-content-start flex-wrap p-0 border border-secondary border-left-0 border-top-0 border-bottom-0 border-right-0">
+                                                 <div class="p-0">My Mturk teammates confidence levels: </div>
+                                                <input type="text"style="width: 30px; height: 30px" maxlength="1"  id="intLimitTextBox200"  value="" name="Agent_CL" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 p-0">
+                                            <div class="d-flex align-content-start flex-wrap p-0 border border-secondary border-left-0 border-top-0 border-bottom-0 border-right-0">
+                                                 <div class="p-0" > How much I liked the task type :</div>
+                                                <input type="text" style="width: 30px; height: 30px" maxlength="1"   id="intLimitTextBox300"  value="" name="Type_Like" required>
+                                            </div>
+                                        </div>
+{#                                       <div class="col-3 p-0">#}
+{##}
+{#                                        </div>#}
+                                 </div>
+                                  <div class="row">
+                                        <div class="col-4">
+
+                                        </div>
+                                        <div class="col-4">
+                                        </div>
+                                        <div class="col-4">
+                                        </div>
+                                 </div>
+                                 <div class="row">
+                                        <div class="col-4">
+{#                                             <div class="d-flex align-content-start flex-wrap p-0 border border-secondary border-left-0 border-top-0 border-bottom-0 border-right-0">#}
+{#                                                 <div class="p-sm-1" > How much I liked the task type :&nbsp; &nbsp; &nbsp;</div>#}
+{#                                                <input type="text" style="width: 30px; height: 30px" maxlength="1"   id="intLimitTextBox300"  value="" name="Type_Like" required>#}
+{#                                            </div>#}
+                                        </div>
+                                        <div class="col-4">
+                                        </div>
+                                        <div class="col-4">
+                                        </div>
+                                 </div>
+                             </div>
+                         </div>
+                      {% endif %}
+
+              <div class="text-dark p-2" style="padding-left: 10px">
+                 <u>The following questions asks about your <strong>satisfaction with the Protocol(Allocator role assignment)</strong></u>:
+             </div>
+
+               {% for  i in range(survey_items_r|length)  %}
+{#                   if i<2#}
+                {%  if survey_items_r[i].getType() == "regular1" %}
+{#                 or survey_items_r[i].getType() == "regular2" or survey_items_r[i].getType() == "regular3" %}#}
+                    <div class="text-info" style="padding-left: 10px">
+{#                       {%  if survey_items_r[i].getType() == "regular1" %}#}
+{#                           <div class="text-info" style="padding-left: 10px">#}
+{#                           {%  elif survey_items_r[i].getType() == "regular2" %}#}
+{#                           <div class="text-warning" style="padding-left: 10px">#}
+{#                           {%  elif survey_items_r[i].getType() == "regular3" %}#}
+{#                           <div class="text-primary" style="padding-left: 10px">#}
+{#                       {% endif %}#}
+
+                     {{ survey_items_r[i].getQuestion()}}
+                   </div>
+                   <div style="padding-left: 10px">
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input"  type="radio"  id="inlineRadio1" value="Stronglydisagree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio1">Strongly Disagree</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio"  id="inlineRadio3"  value="disagree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio3">Disagree</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio"  id="inlineRadio4" value="neutral" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio4">Neutral</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input"  type="radio"  id="inlineRadio5"value="agree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio5">Agree</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio"  id="inlineRadio7" value="Stronglyagree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio7">Strongly Agree</label>
+                            </div>
+                   <p></p>
+                   </div>
+                {% endif %}
+         {% endfor %}
+         <div class="text-dark p-2" style="padding-left: 10px">
+             <u>The following questions asks about your <strong>satisfaction with Team Outcome</strong></u>:
+         </div>
+         {% for  i in range(survey_items_r|length)  %}
+{#                   if i<2#}
+             {%  if survey_items_r[i].getType() == "regular2" %}
+                       <div class="text-primary" style="padding-left: 10px">
+                     {{ survey_items_r[i].getQuestion()}}
+                       </div>
+                   <div style="padding-left: 10px">
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input"  type="radio"  id="inlineRadio1" value="Stronglydisagree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio1">Strongly Disagree</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio"  id="inlineRadio3"  value="disagree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio3">Disagree</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio"  id="inlineRadio4" value="neutral" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio4">Neutral</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input"  type="radio"  id="inlineRadio5"value="agree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio5">Agree</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio"  id="inlineRadio7" value="Stronglyagree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio7">Strongly Agree</label>
+                            </div>
+                   <p></p>
+                   </div>
+             {% endif %}
+         {% endfor %}
+          <div class="text-dark p-2" style="padding-left: 10px">
+                         <u>The following questions asks about your <strong>satisfaction with the Agent Teammates</strong></u>:
+           </div>
+             {% for  i in range(survey_items_r|length)  %}
+{#                   if i<2#}
+             {%  if survey_items_r[i].getType() == "regular3" %}
+                       <div class=" " style="color:#800020; padding-left: 10px">
+                     {{ survey_items_r[i].getQuestion()}}
+                       </div>
+                   <div style="padding-left: 10px">
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input"  type="radio"  id="inlineRadio1" value="Stronglydisagree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio1">Strongly Disagree</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio"  id="inlineRadio3"  value="disagree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio3">Disagree</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio"  id="inlineRadio4" value="neutral" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio4">Neutral</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input"  type="radio"  id="inlineRadio5"value="agree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio5">Agree</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                              <input class="form-check-input" type="radio"  id="inlineRadio7" value="Stronglyagree" name = {{ survey_items_r[i].getitemid() }} required>
+                              <label class="form-check-label" for="inlineRadio7">Strongly Agree</label>
+                            </div>
+                   <p></p>
+                   </div>
+             {% endif %}
+         {% endfor %}
+                     <div class="" style="color:#800020; padding-left: 10px">
+                       {{ survey_items_c[9].getQuestion()}} {{ formatProtocol }}
+                     </div>
+                     <div style="padding-left: 10px">
+                           <div class="form-check form-check-inline">
+                          <input class="form-check-input"  id="inlineRadio1" type="radio" value="Stronglydisagree" name = {{ survey_items_c[9].getitemid() }} required>
+                          <label class="form-check-label" for="inlineRadio1">Strongly Disagree</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input"  id="inlineRadio3" type="radio" value="disagree" name = {{ survey_items_c[9].getitemid() }} required>
+                          <label class="form-check-label" for="inlineRadio3">Disagree</label>
+                        </div>
+
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input"  id="inlineRadio4" type="radio" value="neutral" name = {{ survey_items_c[9].getitemid() }} required>
+                          <label class="form-check-label" for="inlineRadio4">Neutral</label>
+                        </div>
+                         <div class="form-check form-check-inline">
+                          <input class="form-check-input"  id="inlineRadio5" type="radio" value="agree" name = {{ survey_items_c[9].getitemid() }} required>
+                          <label class="form-check-label" for="inlineRadio5">Agree</label>
+                        </div>
+                         <div class="form-check form-check-inline">
+                          <input class="form-check-input"  id="inlineRadio7" type="radio" value="Stronglyagree" name = {{ survey_items_c[9].getitemid() }} required>
+                          <label class="form-check-label " for="inlineRadio7">Strongly Agree</label>
+                        </div>
+
+                     </div>
+
+         <p></p>
+
+
+                     <div class="text-info" style="padding-left: 10px">
+                         Please rate how much you liked each task type from <mark>1</mark>  (strongly <span style="color:red">disliked</span>) to <mark>10</mark> (strongly <span style="color:#7CFC00">liked</span>):
+                     </div>
+                     <div style="padding-left: 10px">
+                         <div class="form-group">
+                             <div class="row">
+                                    <div class="col-4">
+                                        <div class="d-flex align-content-start flex-wrap p-0 border border-secondary border-left-0 border-top-0 border-bottom-0 border-right-0">
+                                             <div class=" {{ myBgHexList[0] }} p-1" style="width: 200px"> Identify Language (SA): </div>
+                                            <input type="text" style="width: 70px; height: 30px"  id="intLimitTextBox1" value="" name="SA_like" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                         <div class="d-flex align-content-start flex-wrap p-0 border border-secondary border-left-0 border-top-0 border-bottom-0 border-right-0">
+                                             <div class=" {{ myBgHexList[1] }} p-1" style="width: 200px"> Identify Landmark (BA): </div>
+                                            <input type="text" style="width: 70px; height: 30px"  id="intLimitTextBox2" value="" name="BA_like" required>
+                                        </div>
+                                    </div>
+                                 <div class="col-4">
+
+                                    </div>
+                             </div>
+                              <div class="row">
+                                    <div class="col-4">
+                                         <div class="d-flex align-content-start flex-wrap p-0 border border-secondary border-left-0 border-top-0 border-bottom-0 border-right-0">
+                                             <div class=" {{ myBgHexList[2] }} p-1" style="width: 200px">  Solve WordGrid (CA): </div>
+                                            <input type="text" style="width: 70px; height: 30px"  id="intLimitTextBox3"  value="" name="CA_like" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                         <div class="d-flex align-content-start flex-wrap p-0 border border-secondary border-left-0 border-top-0 border-bottom-0 border-right-0">
+                                             <div class=" {{ myBgHexList[3] }} p-1" style="width: 200px">  Identify Event (DA): </div>
+                                            <input type="text" style="width: 70px; height: 30px"  id="intLimitTextBox4"  value="" name="DA_like" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+
+                                    </div>
+                             </div>
+                         </div>
+                     </div>
+                     <p></p>
+                     <div class="text-info" style="padding-left: 10px">
+                        {% if protocol == "protocol-selected"%}
+                         How did you select the allocator in each episode?
+                        {% elif protocol == "protocol-alternate"%}
+                         Your opinion on the protocol for taking turns to allocate tasks:
+                         {% elif protocol == "protocol-guided"%}
+                         How did you choose to allocate tasks? Did you use the agent suggestions?
+                         {% elif protocol == "protocol-performance"%}
+                         Your opinion on the protocol choosing the task allocation role based on performance:
+                         {% endif  %}
+                       What did you like and not like about the task allocation process?                     </div>
+                     <div style="padding-left: 10px">
+                          <div class="form-group">
+                            <textarea class="form-control" id="surveyquestion" name="surveyquestion" rows="2"></textarea>
+                          </div>
+                     </div>
+                     <p></p>
+
+                  <br>
+              <div style="padding-left: 10px">
+{#                  <input type="button" class="btn btn-success"  type="submit" value="Submit Survey">#}
+                  <button type="submit" class="btn btn-success mb-2">Submit Survey</button>
+              </div>
+         </form>
+    </div>
+</body>
+</html>
+
+<script>
+// Restricts input for the given textbox to the given inputFilter.
+function setInputFilter(textbox, inputFilter) {
+  ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function(event) {
+    textbox.addEventListener(event, function() {
+      if (inputFilter(this.value)) {
+        this.oldValue = this.value;
+        this.oldSelectionStart = this.selectionStart;
+        this.oldSelectionEnd = this.selectionEnd;
+      } else if (this.hasOwnProperty("oldValue")) {
+        this.value = this.oldValue;
+        this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+      } else {
+        this.value = "";
+      }
+    });
+  });
+}
+// Install input filters.
+setInputFilter(document.getElementById("intLimitTextBox1"), function(value) {
+  return /^\d*$/.test(value) && (value === "" || parseInt(value) <= 10 && parseInt(value) >= 1); });
+setInputFilter(document.getElementById("intLimitTextBox2"), function(value) {
+  return /^\d*$/.test(value) && (value === "" || parseInt(value) <= 10 && parseInt(value) >= 1); });
+setInputFilter(document.getElementById("intLimitTextBox3"), function(value) {
+  return /^\d*$/.test(value) && (value === "" || parseInt(value) <= 10 && parseInt(value) >= 1); });
+setInputFilter(document.getElementById("intLimitTextBox4"), function(value) {
+  return /^\d*$/.test(value) && (value === "" || parseInt(value) <= 10 && parseInt(value) >= 1); });
+
+setInputFilter(document.getElementById("intLimitTextBox100"), function(value) {
+  return /^\d*$/.test(value) && (value === "" || parseInt(value) <= 5 && parseInt(value) >= 1); });
+setInputFilter(document.getElementById("intLimitTextBox200"), function(value) {
+  return /^\d*$/.test(value) && (value === "" || parseInt(value) <= 5 && parseInt(value) >= 1); });
+setInputFilter(document.getElementById("intLimitTextBox300"), function(value) {
+  return /^\d*$/.test(value) && (value === "" || parseInt(value) <= 5 && parseInt(value) >= 1); });
+</script>

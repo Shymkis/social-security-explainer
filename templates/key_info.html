@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>Key Information</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        .warn {
+            color: red;
+        }
+        .column {
+            float: left;
+            width: 50%;
+            padding: 5px;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f7f7f7;
+        }
+        p {
+            text-align: left;
+        }
+        p.timer-link {
+            text-align: center;
+        }
+        .container {
+            text-align: left;
+            margin: 30px 0;
+            width: 80%; /* Centered content container width */
+            border: 2px solid #22f; /* Frame border */
+            border-radius: 10px;
+            max-width: 700px; /* Limit the maximum width for better readability */
+            text-align: center; /* Center-align the container content */
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <h1>Key Information</h1>
+            <h2 class="warn">PLEASE READ</h2>
+            <p>
+                You will solve chess puzzles by selecting the best moves given game states.
+                An <b>AI agent</b> will recommend the best move, optionally providing explanations, using a dialogue box.
+            </p>
+            <p>
+                You will first solve 10 practice puzzles in 10 minutes aided by the AI agent.
+                You will then be tested on 5 additional puzzles without the AI agent.
+                <b style="color: #00a">Read the AI agent's messages in the practice session. They are intended to help you earn money in the testing section.</b>
+            </p>
+            <p>
+                You will control the <b>white</b> pieces. The computer will move the black pieces.
+                Two effective chess tactics will be presented in these puzzles:
+            </p>
+            <div class="column" style="background-color:#FFB695;">
+                <h2>Fork</h2>
+                <div>
+                    <img src="{{ url_for('static', filename='img/fork_example.png') }}" alt="fork" width="200" height="200">
+                </div>
+                <p>
+                    A <b>fork</b> uses a piece to attack multiple enemy pieces simultaneously.
+                    Here, the knight move to C7 forks the rook on A8 and the king on E8. 
+                </p>
+            </div>
+            <div class="column" style="background-color:#FFD2A5;">
+                <h2>Pin</h2>
+                <div>
+                    <img src="{{ url_for('static', filename='img/pin_example.png') }}" alt="pin" width="200" height="200">
+                </div>
+                <p>
+                    A <b>pin</b> "pins” a piece so that it cannot move out of your piece's line of attack without exposing a more valuable piece.
+                    Here, the bishop on B5 pins the rook on D7 to the king on E8.
+            </div>
+            <div class="row">
+                <p class="timer-link">Must wait <span id="timer"></span> to move on.</p>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/countdown.js') }}"></script>
+    <script>
+        function formatTime(minutes, seconds) {
+            minutes = minutes < 10 ? "0" + minutes : minutes
+            seconds = seconds < 10 ? "0" + seconds : seconds
+            timer_display.text(minutes + ':' + seconds)
+        }
+        function timesUp() {
+            if (this.expired()) {
+                $('.timer-link').hide().after(`<a href="{{ url_for('practice') }}" id="next-page">Click to begin practice puzzles.</a>`)
+            }
+        }
+        let next_page = $("#next-page")
+        next_page.hide()
+        let timer_display = $("#timer")
+        let time_limit = 45
+        let timer = new CountDownTimer(time_limit)
+        timer.onTick(formatTime).onTick(timesUp)
+        timer.start()
+    </script>
+</body>
+</html>

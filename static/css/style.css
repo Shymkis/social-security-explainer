@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+* {
+    font-family: 'Roboto', sans-serif;
+}
+body {
+    background-color: #173820;
+}
+.overall-container {
+    display: flex;
+    margin: 0 auto;
+    max-width: 90%;
+}
+.board-container {
+    display: flex;
+    flex-direction: column;
+    font-size: 24px;
+    text-align: center;
+    width: 100%;
+}
+.board-container p {
+    color: white;
+    margin: 1rem;
+}
+#board {
+    margin: auto;
+    touch-action: none;
+    width: 40rem;
+}
+.chat-container {
+    letter-spacing: 0.5px;
+    margin-top: auto;
+    width: 100%;
+}
+.chat-container * {
+    box-sizing: border-box;
+}
+.chat-container img {
+    width: 50px;
+}
+.chatbox {
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.check {
+    color: #0a0;
+}
+.cross {
+    color: #f00;
+}
+.msg-header {
+    background-color: #efefef;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+.msg-header img {
+    float: left;
+    margin-left: 1rem;
+}
+.testing-answer button {
+    padding: 5px 10px;
+    margin: 0 10px;
+    cursor: pointer;
+}
+.testing-answer button.highlight {
+    background-color: #ffb;
+}
+.active {
+    float: left;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+.msg-inbox {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    height: 37rem;
+    overflow-y: auto;
+}
+.received-msg {
+    padding: 0 1rem;
+    width: 92%;
+}
+.received-msg p {
+    background: #efefef none repeat scroll 0 0;
+    border-radius: 10px;
+    box-shadow: rgb(0 0 0 / 25%) 0px 5px 5px 2px;
+    color: #646464;
+    display: table;
+    font-size: 16px;
+    overflow-wrap: break-word;
+    padding: 1rem;
+    width: auto;
+}
+.time {
+    color: #777;
+    display: block;
+    font-size: 12px;
+    margin: 0.5rem 0;
+}
+@media only screen and (max-width: 912px) {
+    .overall-container {
+        flex-direction: column;
+    }
+    #board {
+        width: 80vw;
+    }
+    .chat-container {
+        margin: 1rem 0;
+    }
+    .msg-inbox {
+        height: 40vh;
+    }
+}

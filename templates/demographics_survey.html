@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>Demographics Survey</title>
+    <script>
+        // Dynamically adjust the width of the radio buttons
+        function adjustWidth() {
+            let options = document.getElementsByClassName("option");
+            let maxWidth = 0;
+            for (let i = 0; i < options.length; i++) {
+                maxWidth = Math.max(maxWidth, options[i].offsetWidth);
+            }
+            for (let i = 0; i < options.length; i++) {
+                options[i].style.width = maxWidth + "px";
+            }
+        }
+    </script>
+    <style>
+        h1 {
+            text-align: center; /* Center-align the title */
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column; /* Center content vertically */
+            align-items: center; /* Center content horizontally */
+            height: 100vh; /* Ensure the content takes the full viewport height */
+            margin: 0; /* Remove default body margin */
+            background-color: #f7f7f7;
+        }
+        .container {
+            text-align: left;
+            margin: 30px 0;
+            width: 80%; /* Centered content container width */
+            border: 2px solid #22f; /* Frame border */
+            border-radius: 10px;
+            max-width: 700px; /* Limit the maximum width for better readability */
+            text-align: center; /* Center-align the container content */
+        }
+        .question {
+            margin: 20px 0; /* Increase margin to add more space between questions */
+            text-align: left; /* Align the question text to the left */
+        }
+        .question-label {
+            font-size: 1.5rem;
+            font-weight: bold; /* Make the question label bold */
+        }
+        .question-options {
+            display: flex;
+            align-items: center; /* Center align options horizontally */
+            margin: 10px;
+            text-align: center; /* Center-align options */
+        }
+        .options {
+            display: flex;
+            flex-direction: column; /* Display label and input vertically */
+            margin-right: 20px; /* Add space between options */
+            width: 20%;
+            height: 75px;
+            justify-content: end;
+
+        }
+        .option-label {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .text-box {
+            width: 100%; /* Make text boxes take full width */
+            padding: 5px;
+        }
+        .task-group {
+            border: 2px solid #aaf; /* Frame border */
+            border-radius: 10px;
+            padding: 20px; /* Add padding for spacing */
+            margin-bottom: 20px; /* Add margin to separate question groups */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Demographics Survey</h1>
+        <p>Please carefully and thoughtfully complete all of the following questions.</p>
+        <form id="preference-form" action="{{ url_for('demographics_survey_submit') }}" method="POST" onsubmit="return validateForm()">
+            <!-- Question 1: Age -->
+            <div class="task-group" id="q1">
+                <div class="question">
+                    <label class="question-label" for="q1">What is your age?</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">18-24</label>
+                            <input type="radio" name="q1" value="18-24">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">25-34</label>
+                            <input type="radio" name="q1" value="25-34">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">35-44</label>
+                            <input type="radio" name="q1" value="35-44">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">45-54</label>
+                            <input type="radio" name="q1" value="45-54">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">55-64</label>
+                            <input type="radio" name="q1" value="55-64">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">65 or older</label>
+                            <input type="radio" name="q1" value="65+">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Question 2: Gender -->
+            <div class="task-group" id="q2">
+                <div class="question">
+                    <label class="question-label" for="q2">What is your gender?</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Male</label>
+                            <input type="radio" name="q2" value="Male">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Female</label>
+                            <input type="radio" name="q2" value="Female">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Other</label>
+                            <input type="radio" name="q2" value="Other">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Question 3: Ethnicity -->
+            <div class="task-group" id="q3">
+                <div class="question">
+                    <label class="question-label" for="q3">What is your ethnicity?</label>
+                    <div class="question-options" style="margin-top: 25px">
+                        <div class="options">
+                            <label class="option-label">White</label>
+                            <input type="radio" name="q3" value="White">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Hispanic/Latino</label>
+                            <input type="radio" name="q3" value="Hispanic/Latino">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Black or African American</label>
+                            <input type="radio" name="q3" value="Black or African American">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Native or American Indian</label>
+                            <input type="radio" name="q3" value="Native or American Indian">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Asian or Pacific Islander</label>
+                            <input type="radio" name="q3" value="Asian or Pacific Islander">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Other</label>
+                            <input type="radio" name="q3" value="Other">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Question 4: Education Level -->
+            <div class="task-group" id="q4">
+                <div class="question">
+                    <label class="question-label" for="q4">What is your education level?</label>
+                    <div class="question-options" style="margin-top: 50px">
+                        <div class="options">
+                            <label class="option-label">Less than high school</label>
+                            <input type="radio" name="q4" value="Less than high school">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">High school</label>
+                            <input type="radio" name="q4" value="High school">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Some college, no degree</label>
+                            <input type="radio" name="q4" value="Some college, no degree">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Associate degree</label>
+                            <input type="radio" name="q4" value="Associate degree">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Bachelor's degree</label>
+                            <input type="radio" name="q4" value="Bachelor's degree">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Master's/Graduate Degree</label>
+                            <input type="radio" name="q4" value="Master's/Graduate Degree">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">PhD or similar</label>
+                            <input type="radio" name="q4" value="PhD or similar">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Question 5: Attention Check -->
+            <div class="task-group" id="q5">
+                <div class="question">
+                    <label class="question-label" for="q5">This question checks your attention. Please select "agree".</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Strongly disagree</label>
+                            <input type="radio" name="q5" value="1">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Disagree</label>
+                            <input type="radio" name="q5" value="2">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Neutral</label>
+                            <input type="radio" name="q5" value="3">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Agree</label>
+                            <input type="radio" name="q5" value="4">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Strongly Agree</label>
+                            <input type="radio" name="q5" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="task-group" id="q6">
+                <div class="question">
+                    <label class="question-label" for="q6">What is your chess skill level?</label>
+                    <div class="question-options">
+                        <div class="options">
+                            <label class="option-label">Beginner</label>
+                            <input type="radio" name="q6" value="Beginner">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Intermediate</label>
+                            <input type="radio" name="q6" value="Intermediate">
+                        </div>
+                        <div class="options">
+                            <label class="option-label">Expert</label>
+                            <input type="radio" name="q6" value="Expert">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="button">Submit</button>
+        </form>
+    </div>
+    <script>
+        function validateForm() {
+            // Get all radio buttons with the name "qi" where i is the question number
+            for (let i = 1; i <= 6; i++) {
+                let radios = document.getElementsByName("q" + i);
+                let formValid = false;
+                let j = 0;
+                while (!formValid && j < radios.length) {
+                    if (radios[j].checked) formValid = true;
+                    j++;
+                }
+                if (!formValid) {
+                    alert("Please answer all questions before submitting.");
+                    return false; // Prevent form submission
+                }
+            }
+            // If all questions are answered, allow form submission
+            return true;
+        }
+    </script>
+</body>
+</html>

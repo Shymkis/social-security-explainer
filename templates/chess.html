@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" class="notranslate" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chessboard.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <title>Chess Puzzle Explainer</title>
+</head>
+<body>
+  <div class="overall-container">
+    <div class="board-container">
+      <p><span id="timer"></span></p>
+      <div id="board"></div>
+    </div>
+    <div class="chat-container">
+      <div class="chatbox">
+        <div class="msg-header">
+          <img src="{{ url_for('static', filename='img/avatars/xai-avatar.png') }}">
+          <div class="active">
+            <p>AI Agent</p>
+          </div>
+        </div>
+        <div class="msg-inbox" id="chat" style="color: #646464"></div>
+      </div>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/chessboard.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/chess.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/countdown.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <script>
+    var section = {{ section|tojson }}
+    var protocol = {{ protocol|tojson }}
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+Flask==2.2.5
+Flask_Login==0.6.2
+Flask_Migrate==4.0.5
+flask_sqlalchemy==3.1.1
+Flask_WTF==1.1.1
+SQLAlchemy==2.0.20
+WTForms==3.0.1
