@@ -56,6 +56,7 @@ lm = LoginManager()
 lm.setup_app(app)
 lm.login_view = "login"
 
+
 # util_views.py
 class User(db.Model):
     mturk_id = db.Column(db.String(20), primary_key=True, unique=True)
@@ -82,52 +83,69 @@ class User(db.Model):
 
     def __repr__(self):
         return "<User MTURK ID: %r>" % (self.mturk_id)
-    
+
 class Survey(db.Model):
+    # ID info
     id = db.Column(db.Integer, primary_key=True)
     mturk_id = db.Column(db.String(20), db.ForeignKey("user.mturk_id"))
     type = db.Column(db.String(20))
+    # Survey data
     data = db.Column(JSON)
     timestamp = db.Column(db.DateTime)
 
-class Puzzle(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    fen = db.Column(db.String(100))
-    order = db.Column(db.Integer)
-    moves = db.Column(db.String(20))
-    theme = db.Column(db.String(20))
-    section = db.Column(db.String(20))
-
-class Explanation(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    puzzle_id = db.Column(db.Integer, db.ForeignKey("puzzle.id"))
-    move_num = db.Column(db.Integer)
-    protocol = db.Column(db.String(20))
-    mistake = db.Column(db.Boolean)
-    reason = db.Column(db.String(200))
-
 class Section(db.Model):
+    # ID info
     id = db.Column(db.Integer, primary_key=True)
     mturk_id = db.Column(db.String(20), db.ForeignKey("user.mturk_id"))
     section = db.Column(db.String(20))
+    # Section data
     protocol = db.Column(db.String(20))
     start_time = db.Column(db.DateTime)
     end_time = db.Column(db.DateTime)
-    duration = db.Column(db.Integer)
-    successes = db.Column(db.Integer)
-    num_puzzles = db.Column(db.Integer)
+    total_error = db.Column(db.Integer)
+    num_scenarios = db.Column(db.Integer)
 
-class Move(db.Model):
+class Scenario(db.Model):
+    # ID info
+    id = db.Column(db.Integer, primary_key=True)
+    section = db.Column(db.String(20))
+    order = db.Column(db.Integer)
+    # Scenario data
+    theme = db.Column(db.String(20))
+    marital_status = db.Column(db.String(20))
+    # Spouse A
+    pia_a = db.Column(db.Integer)
+    gender_a = db.Column(db.String(20))
+    current_age_a = db.Column(db.Integer)
+    life_expectancy_a = db.Column(db.Integer)
+    optimal_age_a = db.Column(db.Integer)
+    # Spouse B (if applicable)
+    pia_b = db.Column(db.Integer)
+    gender_b = db.Column(db.String(20))
+    current_age_b = db.Column(db.Integer)
+    life_expectancy_b = db.Column(db.Integer)
+    optimal_age_b = db.Column(db.Integer)
+
+class Selection(db.Model):
+    # ID info
     id = db.Column(db.Integer, primary_key=True)
     mturk_id = db.Column(db.String(20), db.ForeignKey("user.mturk_id"))
     section_id = db.Column(db.Integer, db.ForeignKey("section.id"))
-    puzzle_id = db.Column(db.Integer, db.ForeignKey("puzzle.id"))
-    move_num = db.Column(db.Integer)
-    move = db.Column(db.String(5))
-    start_time = db.Column(db.DateTime)
-    end_time = db.Column(db.DateTime)
-    duration = db.Column(db.Integer)
-    mistake = db.Column(db.Boolean)
+    scenario_id = db.Column(db.Integer, db.ForeignKey("scenario.id"))
+    # Selection data
+    selection_a = db.Column(db.Integer)
+    selection_b = db.Column(db.Integer)
+    error = db.Column(db.Integer)
+    timestamp = db.Column(db.DateTime)
+
+class Explanation(db.Model):
+    # ID info
+    id = db.Column(db.Integer, primary_key=True)
+    scenario_id = db.Column(db.Integer, db.ForeignKey("scenario.id"))
+    protocol = db.Column(db.String(20))
+    # Explanation
+    reason = db.Column(db.String(200))
+
 
 @lm.user_loader
 def load_user(user_id):
@@ -269,7 +287,7 @@ def demographics_survey_submit():
         demographics["ethnicity"] = request.form.get("q3")
         demographics["education"] = request.form.get("q4")
         demographics["attention-check"] = request.form.get("q5")
-        demographics["chess-skill"] = request.form.get("q6")
+        demographics["soc-sec-skill"] = request.form.get("q6")
         
         failed_attention_checks = 0
         if demographics["attention-check"] != "4":
@@ -287,16 +305,7 @@ def demographics_survey_submit():
         db.session.add(survey)
         db.session.commit()
         
-        return redirect(url_for("key_info"))
-
-@app.route("/key_info/")
-@login_required
-def key_info():
-    if not current_user.is_authenticated or not session.get("consent") == True:
-        print("User not authenticated or consented.")
-        return redirect(url_for("login"))
-
-    return render_template("key_info.html")
+        return redirect(url_for("practice"))
 
 @app.route("/practice/")
 @login_required
@@ -312,7 +321,7 @@ def practice():
     session["practice_page_loaded"] = True
 
     session["section"] = "practice"
-    return render_template("chess.html", section=session["section"], protocol=session["protocol"])
+    return render_template("social_security.html", section=session["section"], protocol=session["protocol"])
 
 @app.route("/testing/")
 @login_required
@@ -329,83 +338,56 @@ def testing():
 
     session["section"] = "testing"
     session["protocol"] = "none"
-    return render_template("chess.html", section=session["section"], protocol=session["protocol"])
+    return render_template("social_security.html", section=session["section"], protocol=session["protocol"])
 
-@app.route("/get_puzzles/", methods=["POST"])
-def get_puzzles():
+@app.route("/get_scenarios/", methods=["POST"])
+def get_scenarios():
     # Create section for the user
     sect = Section(
         mturk_id = session["mturk_id"],
         section = session["section"],
         protocol = session["protocol"],
         start_time = datetime.now(),
-        successes = 0,
-        num_puzzles = 0
+        total_error = 0,
+        num_scenarios = 0
     )
     db.session.add(sect)
     db.session.commit()
     session["section_id"] = sect.id
 
-    puzzle_rows = Puzzle.query.filter_by(section=session["section"]).order_by(Puzzle.order).all()
-    puzzle_dicts = [row2dict(p) for p in puzzle_rows]
-    return jsonify(puzzle_dicts)
+    scenario_rows = Scenario.query.filter_by(section=session["section"]).order_by(Scenario.order).all()
+    scenario_dicts = [row2dict(p) for p in scenario_rows]
+    return jsonify(scenario_dicts)
 
-@app.route("/log_move/", methods=["POST"])
-def log_move():
+@app.route("/log_selection/", methods=["POST"])
+def log_selection():
     data = request.get_json()
-    exp_row = Explanation.query.filter_by(
-        puzzle_id=data["puzzle_id"], move_num=data["move_num"],
-        protocol=session["protocol"], mistake=data["mistake"]
-    ).first()
+    exp_row = Explanation.query.filter_by(scenario_id=data["scenario_id"], protocol=session["protocol"]).first()
     exp_dict = row2dict(exp_row) if exp_row else None
 
     sect = Section.query.get(session["section_id"])
-    sect.successes = data["successes"]
-    sect.num_puzzles = data["puzzles"]
+    sect.total_error += data["error"]
+    sect.num_scenarios += 1
 
-    move = Move(
+    selection = Selection(
         mturk_id = session["mturk_id"],
-        section_id = session["section_id"],
-        puzzle_id = data["puzzle_id"],
-        move_num = data["move_num"],
-        move = data["move"],
-        start_time = datetime.fromtimestamp(data["move_start"]/1000),
-        end_time = datetime.fromtimestamp(data["move_end"]/1000),
-        duration = data["move_duration"],
-        mistake = data["mistake"]
+        section_id = sect.id,
+        scenario_id = data["scenario_id"],
+        selection_a = data["selection_a"],
+        selection_b = data["selection_b"],
+        error = data["error"],
+        timestamp = datetime.now()
     )
-    db.session.add(move)
-    
+    db.session.add(selection)
     db.session.commit()
     return jsonify(exp_dict)
 
-@app.route("/log_theme_answer/", methods=["POST"])
-def log_theme_answer():
-    data = request.get_json()
-    surveys = Survey.query.filter_by(mturk_id=session["mturk_id"], type="theme_question").all()
-    for s in surveys:
-        if s.data["puzzle_id"] == data["puzzle_id"]:
-            s.data = data
-            s.timestamp = datetime.now()
-            db.session.commit()
-            return "Updated successfully"
-    survey = Survey(
-        mturk_id = session["mturk_id"],
-        type = "theme_question",
-        data = data,
-        timestamp = datetime.now()
-    )
-    db.session.add(survey)
-    db.session.commit()
-    return "Added successfully"
-
 @app.route("/log_section/", methods=["POST"])
 def log_section():
-    data = request.get_json()
     sect = Section.query.get(session["section_id"])
-    sect.end_time = datetime.fromtimestamp(data["end_time"]/1000)
-    sect.duration = data["duration"]
+    sect.end_time = datetime.now()
     db.session.commit()
+
     if session.get("section") == "testing":
         return url_for("final_survey")
     return url_for("testing")
@@ -468,21 +450,7 @@ def final_survey_submit():
 def calculate_bonus_comp(mturker):
     test_section = Section.query.filter_by(mturk_id=mturker, section="testing").first()
     if test_section:
-        user_moves = Move.query.filter_by(section_id=test_section.id).all()
-        if user_moves:
-            correct_moves = {}
-            bonuses = {}
-            for move in user_moves:
-                if move.puzzle_id not in correct_moves.keys():
-                    correct_moves[move.puzzle_id] = 0
-                if move.puzzle_id not in bonuses.keys():
-                    bonuses[move.puzzle_id] = .2
-                correct_moves[move.puzzle_id] += not move.mistake
-                bonuses[move.puzzle_id] = max(bonuses[move.puzzle_id] - move.mistake*.04, 0)
-            for k in correct_moves:
-                if correct_moves[k] < 2:
-                    bonuses[k] = 0.0
-            return sum(bonuses.values())
+        return round(test_section.total_error*.2)
     return 0.0
 
 @app.route("/post_survey/", methods=["GET", "POST"])

@@ -7,10 +7,12 @@ body {
 }
 .overall-container {
     display: flex;
+    flex-direction: column;
     margin: 0 auto;
     max-width: 90%;
 }
 .board-container {
+    color: white;
     display: flex;
     flex-direction: column;
     font-size: 24px;
@@ -18,18 +20,23 @@ body {
     width: 100%;
 }
 .board-container p {
-    color: white;
     margin: 1rem;
 }
 #board {
-    margin: auto;
+    margin: 2rem auto;
     touch-action: none;
-    width: 40rem;
+}
+table {
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid;
+    padding: 10px;
 }
 .chat-container {
     letter-spacing: 0.5px;
-    margin-top: auto;
-    width: 100%;
+    margin: auto;
+    width: 50rem;
 }
 .chat-container * {
     box-sizing: border-box;
@@ -78,7 +85,7 @@ body {
     border: 1px solid #ccc;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-    height: 37rem;
+    height: 10rem;
     overflow-y: auto;
 }
 .received-msg {
@@ -103,9 +110,6 @@ body {
     margin: 0.5rem 0;
 }
 @media only screen and (max-width: 912px) {
-    .overall-container {
-        flex-direction: column;
-    }
     #board {
         width: 80vw;
     }

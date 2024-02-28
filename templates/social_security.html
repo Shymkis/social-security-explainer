@@ -4,16 +4,46 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google" content="notranslate" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/chessboard.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <title>Chess Puzzle Explainer</title>
+  <title>Social Security Explainer</title>
+  <style>
+    button {
+      background-color: #004bff;
+      border: none;
+      border-radius: 4px;
+      color: #f4f4ff;
+      cursor: pointer; 
+      display: inline-block;
+      font-size: 20px;
+      margin-top: 1rem;
+      padding: 10px 20px;
+      text-decoration: none;
+    }
+    button:hover {
+      background-color: #0056b3; 
+    }
+    .slider {
+      color: white;
+    }
+  </style>
 </head>
 <body>
   <div class="overall-container">
     <div class="board-container">
       <p><span id="timer"></span></p>
-      <div id="board"></div>
+      <div id="board">
+        <table>
+          <tr id="table-header">
+            <th scope="col" style="border: none;"></th>
+            <th scope="col">Current Age</th>
+            <th scope="col">Life Expectancy</th>
+            <th scope="col">PIA ($)</th>
+            <th scope="col">Optimal Filing Age?</th>
+          </tr>
+        </table>
+        <button id="submit-selection">Submit</button>
+      </div>
     </div>
     <div class="chat-container">
       <div class="chatbox">
@@ -28,8 +58,6 @@
     </div>
   </div>
   <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/chessboard.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/chess.js') }}"></script>
   <script src="{{ url_for('static', filename='js/countdown.js') }}"></script>
   <script defer src="{{ url_for('static', filename='js/script.js') }}"></script>
   <script>
