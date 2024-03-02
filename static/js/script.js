@@ -31,9 +31,10 @@ function typing() {
 
 function give_reason(reason) {
   // create message space
+  let t = chat_display.find(".time").last()
   dots = "."
-  cur_message.after("<p>" + dots + "</p>")
-  cur_message = cur_message.next()
+  t.before("<p>" + dots + "</p>")
+  cur_message = t.prev()
   scrollChat()
   // create message
   let message_content = "<b>My explanation:</b> " + reason
@@ -44,84 +45,33 @@ function give_reason(reason) {
     clearInterval(typing_interval)
     // display message
     cur_message.html(message_content).css({"background-color": "#00a", "color": "#efefef"}).addClass("explanation")
-
-    $(".board-container").css("filter","blur(3px)")
-    $(".received-msg:not(:last)").css("filter","blur(3px)")
-    $(".your-selection:not(:last)").css("filter","")
-    $(".recommendation:not(:last)").css("filter","blur(3px)")
-    $(".explanation:not(:last)").css("filter","blur(3px)")
-    setTimeout(function() {
-      $(".board-container").css("filter","")
-      $(".received-msg:not(:last)").css("filter","")
-      $(".your-selection:not(:last)").css("filter","")
-      $(".recommendation:not(:last)").css("filter","")
-      $(".explanation:not(:last)").css("filter","")
-    }, 2000)
     scrollChat()
   }, message_content.length*10)
-}
-
-function give_recommendation(reason) {
-  // create message space
-  dots = "."
-  cur_message.after("<p>" + dots + "</p>")
-  cur_message = cur_message.next()
-  scrollChat()
-  // create message
-  let message_content = "Optimal solution: "
-  // typing animation
-  let typing_interval = setInterval(typing, 200)
-  setTimeout(function() {
-    // stop typing
-    clearInterval(typing_interval)
-    // display message
-    cur_message.html(message_content).addClass("recommendation")
-    scrollChat()
-    // give explanation to proper protocol groups
-    if (protocol != "none" && reason != "") give_reason(reason)
-  }, message_content.length*10)
-}
-
-function agent_chat(reason) {
-  let t = chat_display.find(".time").last()
-  // create message space
-  dots = "."
-  t.before("<p>" + dots + "</p>")
-  cur_message = t.prev()
-  scrollChat()
-  // create message
-  let message_content = "Test"
-  // typing animation
-  let typing_interval = setInterval(typing, 200)
-  setTimeout(function() {
-    // stop typing
-    clearInterval(typing_interval)
-    // display message
-    cur_message.html(message_content).addClass("your-selection")
-    scrollChat()
-    // in practice section, offer recommendation
-    if (section == "practice") give_recommendation(reason)
-  }, message_content.length*5)
 }
 
 function submitSelection() {
   // calculate error
-  let marital_status = scenarios[scenario_num]["marital_status"]
+  let married = scenarios[scenario_num]["marital_status"] == "married"
+
   let selection_a = $("#spouse_a").val()
   let optimal_age_a = scenarios[scenario_num]["optimal_age_a"]
-  let err = Math.abs(selection_a - optimal_age_a)
+  let user_error = user_error_a = Math.abs(selection_a - optimal_age_a)
+
   let selection_b = null
-  if (marital_status == "married") {
+  let optimal_age_b = null
+  let user_error_b = null
+  if (married) {
     selection_b = $("#spouse_b").val()
-    let optimal_age_b = scenarios[scenario_num]["optimal_age_b"]
-    err += Math.abs(selection_b - optimal_age_b)
+    optimal_age_b = scenarios[scenario_num]["optimal_age_b"]
+    user_error_b += Math.abs(selection_b - optimal_age_b)
+    user_error += user_error_b
   }
   // log data
   let selection_data = JSON.stringify({
     scenario_id: scenarios[scenario_num]["id"],
     selection_a: selection_a,
     selection_b: selection_b,
-    error: err
+    error: user_error
   })
   $.ajax({
     url: "/log_selection/",
@@ -129,8 +79,17 @@ function submitSelection() {
     contentType: "application/json",
     data: selection_data,
     success: function(data) {
-      // agent chat
-      agent_chat(data !== null ? data["reason"] : "")
+      // post-selection changes
+      $(".slider").prop("disabled", true)
+      $("#optimal_a").text(optimal_age_a)
+      $("#error_a").text(user_error_a)
+      if (married) {
+        $("#optimal_b").text(optimal_age_b)
+        $("#error_b").text(user_error_b)
+      }
+      // give recommendation if practice
+      // if (section == "practice" && data !== null) give_reason(data["reason"])
+      if (section == "practice") give_reason("Test")
     },
     error: function(err) {
       console.log(err)
@@ -144,7 +103,6 @@ function clickedSubmit() {
     case "Submit":
       submitSelection()
       submit_button.text("Continue")
-      $(".slider").prop("disabled", true)
       break
     case "Continue":
       // move on to the next scenario
@@ -187,9 +145,9 @@ function nextScenario() {
   $("#scenario").text("Scenario " + (scenario_num + 1) + " of " + scenarios.length)
 
   let scenario = scenarios[scenario_num]
-  let marital_status = scenario["marital_status"]
+  let married = scenario["marital_status"] == "married"
   let len_a = len_b = 100
-  if (marital_status == "married") {
+  if (married) {
     let a_over_b = (scenario["life_expectancy_a"] - scenario["current_age_a"])/(scenario["life_expectancy_b"] - scenario["current_age_b"])
     len_a = 100*Math.min(1, a_over_b)
     len_b = 100*Math.min(1, 1/a_over_b)
@@ -199,7 +157,7 @@ function nextScenario() {
     <tr class="data-row">
       <th scope="row">Spouse A</th>
       <td>` + scenario["pia_a"] + `</td>
-      <td style="text-align: left; width: 300px">
+      <td class="slider-cell">
         <output style="width: ` + len_a + `%">66</output>
         <input type="range" min="` + scenario["current_age_a"] + `" max="` + scenario["life_expectancy_a"] + `" value="66" list="markers_a" class="slider" id="spouse_a" style="width: ` + len_a + `%">
         <datalist id="markers_a" style="width: ` + len_a + `%">
@@ -209,14 +167,16 @@ function nextScenario() {
           <option value="` + scenario["life_expectancy_a"] + `" label="` + scenario["life_expectancy_a"] + `"></option>
         </datalist>
       </td>
+      <td id="optimal_a"></td>
+      <td id="error_a"></td>
     </tr>
   `)
-  if (marital_status == "married") {
+  if (married) {
     $("#board table tr:last").after(`
     <tr class="data-row">
       <th scope="row">Spouse B</th>
       <td>` + scenario["pia_b"] + `</td>
-      <td style="text-align: left; width: 300px">
+      <td class="slider-cell">
         <output style="width: ` + len_b + `%">66</output>
         <input type="range" min="` + scenario["current_age_b"] + `" max="` + scenario["life_expectancy_b"] + `" value="66" list="markers_b" class="slider" id="spouse_b" style="width: ` + len_b + `%">
         <datalist id="markers_b" style="width: ` + len_b + `%">
@@ -226,6 +186,8 @@ function nextScenario() {
           <option value="` + scenario["life_expectancy_b"] + `" label="` + scenario["life_expectancy_b"] + `"></option>
         </datalist>
       </td>
+      <td id="optimal_b"></td>
+      <td id="error_b"></td>
     </tr>
   `)
   }

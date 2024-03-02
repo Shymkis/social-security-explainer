@@ -34,6 +34,10 @@ th, td {
     border: 1px solid;
     padding: 10px;
 }
+.slider-cell {
+    text-align: left;
+    width: 300px;
+}
 output {
     display: block;
     text-align: center;
