@@ -308,15 +308,15 @@ def demographics_survey_submit():
         return redirect(url_for("practice"))
 
 @app.route("/practice/")
-@login_required
+# @login_required
 def practice():
-    if not current_user.is_authenticated or not session.get("consent") == True:
-        print("User not authenticated or consented.")
-        return redirect(url_for("login"))
+    # if not current_user.is_authenticated or not session.get("consent") == True:
+    #     print("User not authenticated or consented.")
+    #     return redirect(url_for("login"))
 
-    if session.get("practice_page_loaded"):
-        print("User is reloading practice page.")
-        return redirect(url_for("clear_session_and_logout"))
+    # if session.get("practice_page_loaded"):
+    #     print("User is reloading practice page.")
+    #     return redirect(url_for("clear_session_and_logout"))
 
     session["practice_page_loaded"] = True
 
@@ -449,9 +449,12 @@ def final_survey_submit():
 
 def calculate_bonus_comp(mturker):
     test_section = Section.query.filter_by(mturk_id=mturker, section="testing").first()
+    bonus = 0.0
     if test_section:
-        return round(test_section.total_error*.2)
-    return 0.0
+        test_selections = Selection.query.filter_by(mturk_id=mturker, section_id=test_section.id).all()
+        for selection in test_selections:
+            bonus += .25*max(0, 1 - selection.error/4)
+    return round(bonus, 2)
 
 @app.route("/post_survey/", methods=["GET", "POST"])
 def post_survey():
