@@ -102,8 +102,10 @@ class Section(db.Model):
     protocol = db.Column(db.String(20))
     start_time = db.Column(db.DateTime)
     end_time = db.Column(db.DateTime)
-    total_error = db.Column(db.Integer)
-    num_scenarios = db.Column(db.Integer)
+    error = db.Column(db.Integer, default=0)
+    bonus = db.Column(db.Float, default=0.0)
+    num_scenarios = db.Column(db.Integer, default=0)
+    num_selections = db.Column(db.Integer, default=0)
 
 class Scenario(db.Model):
     # ID info
@@ -134,8 +136,11 @@ class Selection(db.Model):
     scenario_id = db.Column(db.Integer, db.ForeignKey("scenario.id"))
     # Selection data
     selection_a = db.Column(db.Integer)
+    error_a = db.Column(db.Integer)
+    bonus_a = db.Column(db.Float)
     selection_b = db.Column(db.Integer)
-    error = db.Column(db.Integer)
+    error_b = db.Column(db.Integer)
+    bonus_b = db.Column(db.Float)
     timestamp = db.Column(db.DateTime)
 
 class Explanation(db.Model):
@@ -191,7 +196,7 @@ def index():
     else:
         return redirect(url_for("consent"))
 
-#Login page
+# Login page
 @app.route("/login/", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
@@ -347,9 +352,7 @@ def get_scenarios():
         mturk_id = session["mturk_id"],
         section = session["section"],
         protocol = session["protocol"],
-        start_time = datetime.now(),
-        total_error = 0,
-        num_scenarios = 0
+        start_time = datetime.now()
     )
     db.session.add(sect)
     db.session.commit()
@@ -366,16 +369,25 @@ def log_selection():
     exp_dict = row2dict(exp_row) if exp_row else None
 
     sect = Section.query.get(session["section_id"])
-    sect.total_error += data["error"]
     sect.num_scenarios += 1
+    sect.error += data["error_a"]
+    if data["bonus_a"] is not None: sect.bonus += data["bonus_a"]
+    sect.num_selections += 1
+    if data["error_b"] is not None:
+        sect.error += data["error_b"]
+        if data["bonus_b"] is not None: sect.bonus += data["bonus_b"]
+        sect.num_selections += 1
 
     selection = Selection(
         mturk_id = session["mturk_id"],
         section_id = sect.id,
         scenario_id = data["scenario_id"],
         selection_a = data["selection_a"],
+        error_a = data["error_a"],
+        bonus_a = data["bonus_a"],
         selection_b = data["selection_b"],
-        error = data["error"],
+        error_b = data["error_b"],
+        bonus_b = data["bonus_b"],
         timestamp = datetime.now()
     )
     db.session.add(selection)
@@ -449,12 +461,9 @@ def final_survey_submit():
 
 def calculate_bonus_comp(mturker):
     test_section = Section.query.filter_by(mturk_id=mturker, section="testing").first()
-    bonus = 0.0
-    if test_section:
-        test_selections = Selection.query.filter_by(mturk_id=mturker, section_id=test_section.id).all()
-        for selection in test_selections:
-            bonus += .25*max(0, 1 - selection.error/4)
-    return round(bonus, 2)
+    if test_section: 
+        return round(Section.bonus, 2)
+    return 0.0
 
 @app.route("/post_survey/", methods=["GET", "POST"])
 def post_survey():

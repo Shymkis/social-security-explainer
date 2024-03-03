@@ -17,12 +17,16 @@
         <table>
           <tr>
             <th scope="col" style="border: none;"></th>
-            <th scope="col">PIA ($)</th>
-            <th scope="col">Select Filing Age</th>
-            <th scope="col">Optimal</th>
+            <th scope="col">PIA</th>
+            <th scope="col">Select Filing Age<br>(between 62 and 70)</th>
+            <th scope="col">Optimal<br>Age</th>
             <th scope="col">Error</th>
+            {% if section == "testing" %}
+            <th scope="col">Bonus<br>Earned</th>
+            {% endif %}
           </tr>
         </table>
+        <!-- TODO: Insert explanations here and move button out of way -->
         <button id="submit">Submit</button>
       </div>
     </div>
