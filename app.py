@@ -146,10 +146,10 @@ class Selection(db.Model):
 class Explanation(db.Model):
     # ID info
     id = db.Column(db.Integer, primary_key=True)
-    scenario_id = db.Column(db.Integer, db.ForeignKey("scenario.id"))
+    theme = db.Column(db.String(20))
     protocol = db.Column(db.String(20))
     # Explanation
-    reason = db.Column(db.String(200))
+    reason = db.Column(db.String(400))
 
 
 @lm.user_loader
@@ -251,7 +251,8 @@ def consent_submit():
             db.session.commit()
             
             # Assign a random intervention condition
-            session["protocol"] = choice(PROTOCOLS)
+            # session["protocol"] = choice(PROTOCOLS)
+            session["protocol"] = "actionable"
             # Add to user model
             user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
             user.protocol = session["protocol"]
@@ -313,11 +314,11 @@ def demographics_survey_submit():
         return redirect(url_for("practice"))
 
 @app.route("/practice/")
-# @login_required
+@login_required
 def practice():
-    # if not current_user.is_authenticated or not session.get("consent") == True:
-    #     print("User not authenticated or consented.")
-    #     return redirect(url_for("login"))
+    if not current_user.is_authenticated or not session.get("consent") == True:
+        print("User not authenticated or consented.")
+        return redirect(url_for("login"))
 
     # if session.get("practice_page_loaded"):
     #     print("User is reloading practice page.")
@@ -335,9 +336,9 @@ def testing():
         print("User not authenticated or consented.")
         return redirect(url_for("login"))
 
-    if session.get("testing_page_loaded"):
-        print("User is reloading testing page.")
-        return redirect(url_for("clear_session_and_logout"))
+    # if session.get("testing_page_loaded"):
+    #     print("User is reloading testing page.")
+    #     return redirect(url_for("clear_session_and_logout"))
 
     session["testing_page_loaded"] = True
 
@@ -365,8 +366,8 @@ def get_scenarios():
 @app.route("/log_selection/", methods=["POST"])
 def log_selection():
     data = request.get_json()
-    exp_row = Explanation.query.filter_by(scenario_id=data["scenario_id"], protocol=session["protocol"]).first()
-    exp_dict = row2dict(exp_row) if exp_row else None
+    exp_rows = Explanation.query.filter_by(theme=data["theme"], protocol=session["protocol"]).all()
+    exp_dict = [row2dict(p)["reason"] for p in exp_rows] if exp_rows else None
 
     sect = Section.query.get(session["section_id"])
     sect.num_scenarios += 1
@@ -462,7 +463,7 @@ def final_survey_submit():
 def calculate_bonus_comp(mturker):
     test_section = Section.query.filter_by(mturk_id=mturker, section="testing").first()
     if test_section: 
-        return round(Section.bonus, 2)
+        return round(test_section.bonus, 2)
     return 0.0
 
 @app.route("/post_survey/", methods=["GET", "POST"])

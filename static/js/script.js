@@ -25,36 +25,42 @@ function scrollChat() {
 }
 
 function typing() {
-  dots = dots == "..." ? "." : dots + "."
+  dots = dots == "●●●" ? '●' : dots + '●'
   cur_message.text(dots)
 }
 
-function give_reason(reason) {
-  // create message space
-  let t = chat_display.find(".time").last()
-  dots = "."
-  t.before("<p>" + dots + "</p>")
-  cur_message = t.prev()
-  scrollChat()
-  // create message
-  let message_content = "<b>My explanation:</b> " + reason
-  // typing animation
-  let typing_interval = setInterval(typing, 200)
-  setTimeout(function() {
+async function explain(reasons) {
+  let tags = new explanation_tags(scenarios[scenario_num])
+  for (let i = 0; i < reasons.length; i++) {
+    let reason = reasons[i]
+    // insert tags into reason
+    reason = tags.replace_in(reason)
+    // create message space
+    let t = chat_display.find(".time").last()
+    dots = '●'
+    t.before(`<p style="background-color: #00a; color: #efefef">` + dots + `</p>`)
+    cur_message = t.prev()
+    scrollChat()
+    // typing animation
+    let typing_interval = setInterval(typing, 200)
+    await sleep(reason.length*5)
     // stop typing
     clearInterval(typing_interval)
     // display message
-    cur_message.html(message_content).css({"background-color": "#00a", "color": "#efefef"}).addClass("explanation")
+    cur_message.html(reason).css({"background-color": "#00a", "color": "#efefef"}).addClass("explanation")
     scrollChat()
-  }, message_content.length*10)
+  }
+  // enable button after a delay
+  setTimeout(function() { $("#submit").prop("disabled", false) }, 3000)
 }
 
 function submitSelection() {
   // calculate error (and bonus if testing)
-  let married = scenarios[scenario_num]["marital_status"] == "married"
+  let scenario = scenarios[scenario_num]
+  let married = scenario["marital_status"] == "married"
 
   let selection_a = $("#spouse_a").val()
-  let optimal_age_a = scenarios[scenario_num]["optimal_age_a"]
+  let optimal_age_a = scenario["optimal_age_a"]
   let error_a = Math.abs(selection_a - optimal_age_a)
   let bonus_a = section == "testing" ? (1/18)*Math.max(0, 1 - error_a/4) : null
 
@@ -64,19 +70,20 @@ function submitSelection() {
   let bonus_b = null
   if (married) {
     selection_b = $("#spouse_b").val()
-    optimal_age_b = scenarios[scenario_num]["optimal_age_b"]
+    optimal_age_b = scenario["optimal_age_b"]
     error_b = Math.abs(selection_b - optimal_age_b)
     if (section == "testing") bonus_b = (1/18)*Math.max(0, 1 - error_b/4)
   }
   // log data
   let selection_data = JSON.stringify({
-    scenario_id: scenarios[scenario_num]["id"],
+    scenario_id: scenario["id"],
     selection_a: selection_a,
     error_a: error_a,
     bonus_a: bonus_a,
     selection_b: selection_b,
     error_b: error_b,
-    bonus_b: bonus_b
+    bonus_b: bonus_b,
+    theme: scenario["theme"]
   })
   $.ajax({
     url: "/log_selection/",
@@ -88,24 +95,31 @@ function submitSelection() {
       $(".slider").prop("disabled", true)
       $("#optimal_a").text(optimal_age_a)
       $("#error_a").text(error_a)
-      if (section == "testing") $("#bonus_a").text((100*bonus_a).toFixed(1) + "¢")
+      if (section == "testing") $("#bonus_a").text((bonus_a > 0 ? `~` : '') + Math.round(100*bonus_a) + '¢')
       if (married) {
         $("#optimal_b").text(optimal_age_b)
         $("#error_b").text(error_b)
-        if (section == "testing") $("#bonus_b").text((100*bonus_b).toFixed(1) + "¢")
+        if (section == "testing") $("#bonus_b").text((bonus_b > 0 ? `~` : '') + Math.round(100*bonus_b) + '¢')
       }
-      // give recommendation if practice
-      // if (section == "practice" && data !== null) give_reason(data["reason"])
-      if (section == "practice") give_reason("Test")
+      // give explanation if right protocol
+      if (protocol != "none" && data !== null) {
+        explain(data)
+      } else {
+        // enable button after a delay
+        setTimeout(function() { $("#submit").prop("disabled", false) }, 1000)
+      }
     },
-    error: function(err) {
-      console.log(err)
+  error: function(err) {
+    console.log(err)
     }
   })
 }
 
-function clickedSubmit() {
+async function clickedSubmit() {
   let submit_button = $("#submit")
+  // disable button
+  submit_button.prop("disabled", true)
+  // perform corresponding action
   switch (submit_button.text()) {
     case "Submit":
       submitSelection()
@@ -121,11 +135,10 @@ function clickedSubmit() {
       scrollChat()
       nextScenario()
       submit_button.text("Submit")
+      // enable button after a delay
+      setTimeout(function() { submit_button.prop("disabled", false) }, 1000)
       break
-  }
-  // disable button for 5 seconds
-  submit_button.prop("disabled", true)
-  setTimeout(function() { submit_button.prop("disabled", false) }, 1000)
+    }
 }
 
 function nextSection() {
@@ -149,8 +162,7 @@ function nextScenario() {
     return
   }
   
-  $("#scenario").text("Scenario " + (scenario_num + 1) + " of " + scenarios.length)
-
+  $("progress").val(scenario_num/scenarios.length)
   let scenario = scenarios[scenario_num]
   let married = scenario["marital_status"] == "married"
   let len_a = len_b = 100
@@ -212,6 +224,8 @@ function nextScenario() {
 
 // undeclared vars
 let cur_message, scenarios
+// general vars
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 // timer vars
 let timer_display = $("#timer")
 let time_limit = 60*10
@@ -225,7 +239,38 @@ $("#submit").on("click", clickedSubmit)
 let scenario_num = 0
 // chat vars
 let chat_display = $("#chat")
-let dots = "."
+let dots = '●'
+class explanation_tags {
+  constructor(scenario) {
+    this.lifespanA = Number(scenario["life_expectancy_a"])
+    this.PIAA = Number(scenario["pia_a"])
+    this.nameA = "Spouse A"
+    this.fewestYearsA = this.lifespanA - 70
+    this.mostYearsA = this.lifespanA - 62
+    if (scenario["marital_status"] == "married") {
+      this.lifespanB = Number(scenario["life_expectancy_b"])
+      this.PIAB = Number(scenario["pia_b"])
+      this.nameB = "Spouse B"
+      this.fewestYearsB = this.lifespanB - 70
+      this.mostYearsB = this.lifespanB - 62
+      this.fewestYearsMin = Math.min(this.fewestYearsA, this.fewestYearsB)
+      this.fewestYearsMax = Math.max(this.fewestYearsA, this.fewestYearsB)
+      this.mostYearsMin = Math.min(this.mostYearsA, this.mostYearsB)
+      this.mostYearsMax = Math.max(this.mostYearsA, this.mostYearsB)
+      this.lowLifespanSpouse = this.lifespanA <= this.lifespanB ? this.nameA : this.nameB
+      this.highLifespanSpouse = this.lifespanA > this.lifespanB ? this.nameA : this.nameB
+      this.lowPIASpouse = this.PIAA <= this.PIAB ? this.nameA : this.nameB
+      this.highPIASpouse = this.PIAA > this.PIAB ? this.nameA : this.nameB
+    }
+  }
+
+  replace_in(explanation) {
+    for (let tag in this) {
+      explanation = explanation.replace("{"+tag+"}", this[tag])
+    }
+    return explanation
+  }
+}
 
 // get section's scenarios
 $.ajax({
@@ -234,10 +279,10 @@ $.ajax({
   contentType: "application/json",
   success: function(data) {
     scenarios = data
-    if (section == "testing") {
-      timer_display.parent().prepend("Testing time remaining: ")
+    if (section == "practice") {
+      timer_display.before("Practice Section")
     } else {
-      timer_display.parent().prepend("Practice time remaining: ")
+      timer_display.before("Testing Section")
     }
     
     nextScenario()

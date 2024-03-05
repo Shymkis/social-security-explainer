@@ -22,17 +22,25 @@ body {
 .board-container p {
     margin: 1rem;
 }
+progress {
+    margin: auto;
+}
+#timer {
+    color: #DB7C26;
+}
 #board {
-    margin: 2rem auto;
+    margin: 1rem auto;
     touch-action: none;
 }
 table {
     border-collapse: collapse;
+    font-size: 18px;
+    letter-spacing: 1px;
     width: 100%;
 }
 th, td {
     border: 1px solid;
-    padding: 10px;
+    padding: 5px;
 }
 .slider-cell {
     text-align: left;
