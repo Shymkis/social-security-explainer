@@ -18,18 +18,12 @@ function updateSliderVal() {
   slider.siblings("output").text(slider.val())
 }
 
-function scrollChat() {
-  let scroll_height = 0
-  chat_display().children().each(function() { scroll_height += $(this).height() })
-  chat_display().animate({ scrollTop: scroll_height })
-}
-
 function typing() {
   dots = dots == "●●●" ? '●' : dots + '●'
   cur_message.text(dots)
 }
 
-async function explain(reasons) {
+async function explain(reasons, selection) {
   // create message space
   $("#submit").before(`
     <div class="chat-container">
@@ -44,7 +38,7 @@ async function explain(reasons) {
       </div>
     </div>
   `)
-  let tags = new explanation_tags(scenarios[scenario_num])
+  let tags = new explanation_tags(scenarios[scenario_num], selection)
   for (let i = 0; i < reasons.length; i++) {
     let reason = reasons[i]
     // insert tags into reason
@@ -117,7 +111,7 @@ function submitSelection() {
       }
       // give explanation if right protocol
       if (protocol != "none" && data !== null) {
-        explain(data)
+        explain(data, JSON.parse(selection_data))
       } else {
         // enable button after a delay
         setTimeout(function() { $("#submit").prop("disabled", false) }, 1000)
@@ -129,7 +123,7 @@ function submitSelection() {
   })
 }
 
-async function clickedSubmit() {
+function clickedSubmit() {
   let submit_button = $("#submit")
   // disable button
   submit_button.prop("disabled", true)
@@ -148,7 +142,7 @@ async function clickedSubmit() {
       // enable button after a delay
       setTimeout(function() { submit_button.prop("disabled", false) }, 1000)
       break
-    }
+  }
 }
 
 function nextSection() {
@@ -253,19 +247,30 @@ let scenario_num = 0
 // chat vars
 const chat_display = () => $(".msg-inbox").last()
 let dots = '●'
+function accuracyStatement(s, o) {
+  if (s - o < -4) return "too low. They should file much later."
+  if (s - o < 0) return "close! They should file slightly later."
+  if (s - o == 0) return "exactly right!"
+  if (s - o < 4) return "close! They should file slightly earlier."
+  return "too high. They should file much earlier."
+}
 class explanation_tags {
-  constructor(scenario) {
+  constructor(scenario, selection) {
     this.lifespanA = Number(scenario["life_expectancy_a"])
     this.PIAA = Number(scenario["pia_a"])
     this.nameA = "Spouse A"
+    this.optimalAgeA = scenario["optimal_age_a"]
     this.fewestYearsA = this.lifespanA - 70
     this.mostYearsA = this.lifespanA - 62
+    this.accuracyStatementA = accuracyStatement(Number(selection["selection_a"]), this.optimalAgeA)
     if (scenario["marital_status"] == "married") {
       this.lifespanB = Number(scenario["life_expectancy_b"])
       this.PIAB = Number(scenario["pia_b"])
       this.nameB = "Spouse B"
+      this.optimalAgeB = scenario["optimal_age_b"]
       this.fewestYearsB = this.lifespanB - 70
       this.mostYearsB = this.lifespanB - 62
+      this.accuracyStatementB = accuracyStatement(Number(selection["selection_b"]), this.optimalAgeB)
       this.fewestYearsMin = Math.min(this.fewestYearsA, this.fewestYearsB)
       this.fewestYearsMax = Math.max(this.fewestYearsA, this.fewestYearsB)
       this.mostYearsMin = Math.min(this.mostYearsA, this.mostYearsB)

@@ -285,7 +285,6 @@ def demographics_survey_submit():
         return redirect(url_for("clear_session_and_logout"))
     
     if request.method == "POST":
-        
         # Get data from the form as a dictionary
         demographics = {}
         demographics["age"] = request.form.get("q1")
@@ -320,9 +319,9 @@ def practice():
         print("User not authenticated or consented.")
         return redirect(url_for("login"))
 
-    # if session.get("practice_page_loaded"):
-    #     print("User is reloading practice page.")
-    #     return redirect(url_for("clear_session_and_logout"))
+    if session.get("practice_page_loaded"):
+        print("User is reloading practice page.")
+        return redirect(url_for("clear_session_and_logout"))
 
     session["practice_page_loaded"] = True
 
@@ -336,9 +335,9 @@ def testing():
         print("User not authenticated or consented.")
         return redirect(url_for("login"))
 
-    # if session.get("testing_page_loaded"):
-    #     print("User is reloading testing page.")
-    #     return redirect(url_for("clear_session_and_logout"))
+    if session.get("testing_page_loaded"):
+        print("User is reloading testing page.")
+        return redirect(url_for("clear_session_and_logout"))
 
     session["testing_page_loaded"] = True
 
