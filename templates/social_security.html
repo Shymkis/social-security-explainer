@@ -9,40 +9,13 @@
   <title>Social Security Explainer</title>
 </head>
 <body>
-  <div class="overall-container">
-    <div class="board-container">
-      <span id="timer"></span>
-      <progress></progress>
-      <div id="board">
-        <table>
-          <tr>
-            <th scope="col" style="border: none;"></th>
-            <th scope="col">PIA</th>
-            <th scope="col">Select Filing Age<br>(between 62 and 70)</th>
-            <th scope="col">Optimal<br>Age</th>
-            <th scope="col">Error</th>
-            {% if section == "testing" %}
-            <th scope="col">Bonus<br>Earned</th>
-            {% endif %}
-          </tr>
-        </table>
-        <!-- TODO: Insert explanations here and move button out of way -->
-        <button id="submit">Submit</button>
-      </div>
-    </div>
-    {% if protocol != "none" %}
-    <div class="chat-container">
-      <div class="chatbox">
-        <div class="msg-header">
-          <img src="{{ url_for('static', filename='img/avatars/xai-avatar.png') }}">
-          <div class="active">
-            <p>AI Agent</p>
-          </div>
-        </div>
-        <div class="msg-inbox" id="chat" style="color: #646464"></div>
-      </div>
-    </div>
-    {% endif %}
+  <nav>
+    <p></p>
+    <p id="timer"></p>
+    <progress></progress>
+  </nav>
+  <div class="ss-content">
+    <button id="submit">Submit</button>
   </div>
   <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
   <script src="{{ url_for('static', filename='js/countdown.js') }}"></script>

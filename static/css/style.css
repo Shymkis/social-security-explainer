@@ -4,39 +4,40 @@
 }
 body {
     background-color: #173820;
+    margin: 0;
 }
-.overall-container {
-    display: flex;
-    flex-direction: column;
-    margin: 0 auto;
-    max-width: 90%;
-}
-.board-container {
+nav {
+    background-color: inherit;
+    /* box-shadow: 0 2px #222; */
+    box-shadow: rgb(0 0 0 / 25%) 0px 5px 5px 2px;
     color: white;
     display: flex;
     flex-direction: column;
     font-size: 24px;
+    position: fixed;
     text-align: center;
+    top: 0;
     width: 100%;
 }
-.board-container p {
-    margin: 1rem;
-}
-progress {
+nav p, progress {
     margin: auto;
 }
 #timer {
     color: #DB7C26;
 }
-#board {
-    margin: 1rem auto;
-    touch-action: none;
+.ss-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-top: 100px;
 }
 table {
     border-collapse: collapse;
+    color: white;
     font-size: 18px;
     letter-spacing: 1px;
-    width: 100%;
+    margin: auto;
+    text-align: center;
 }
 th, td {
     border: 1px solid;
@@ -66,11 +67,9 @@ option {
     border: none;
     border-radius: 4px;
     color: #f4f4ff;
-    display: inline-block;
     font-size: 20px;
-    margin-top: 1rem;
+    margin: auto;
     padding: 10px 20px;
-    text-decoration: none;
 }
 #submit:hover {
     background-color: #0056b3;
@@ -97,12 +96,6 @@ option {
     flex-direction: column;
     overflow: hidden;
 }
-.check {
-    color: #0a0;
-}
-.cross {
-    color: #f00;
-}
 .msg-header {
     background-color: #efefef;
     border: 1px solid #ccc;
@@ -114,14 +107,6 @@ option {
     float: left;
     margin-left: 1rem;
 }
-.testing-answer button {
-    padding: 5px 10px;
-    margin: 0 10px;
-    cursor: pointer;
-}
-.testing-answer button.highlight {
-    background-color: #ffb;
-}
 .active {
     float: left;
     font-weight: bold;
@@ -132,8 +117,6 @@ option {
     border: 1px solid #ccc;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
-    height: 10rem;
-    overflow-y: auto;
 }
 .received-msg {
     padding: 0 1rem;
@@ -149,21 +132,4 @@ option {
     overflow-wrap: break-word;
     padding: 1rem;
     width: auto;
-}
-.time {
-    color: #777;
-    display: block;
-    font-size: 12px;
-    margin: 0.5rem 0;
-}
-@media only screen and (max-width: 912px) {
-    #board {
-        width: 80vw;
-    }
-    .chat-container {
-        margin: 1rem 0;
-    }
-    .msg-inbox {
-        height: 40vh;
-    }
 }

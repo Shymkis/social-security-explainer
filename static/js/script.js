@@ -20,8 +20,8 @@ function updateSliderVal() {
 
 function scrollChat() {
   let scroll_height = 0
-  chat_display.children().each(function() { scroll_height += $(this).height() })
-  chat_display.animate({ scrollTop: scroll_height })
+  chat_display().children().each(function() { scroll_height += $(this).height() })
+  chat_display().animate({ scrollTop: scroll_height })
 }
 
 function typing() {
@@ -30,17 +30,32 @@ function typing() {
 }
 
 async function explain(reasons) {
+  // create message space
+  $("#submit").before(`
+    <div class="chat-container">
+      <div class="chatbox">
+        <div class="msg-header">
+          <img src="/static/img/avatars/xai-avatar.png">
+          <div class="active">
+            <p>AI Agent</p>
+          </div>
+        </div>
+        <div class="msg-inbox" style="color: #646464"></div>
+      </div>
+    </div>
+  `)
   let tags = new explanation_tags(scenarios[scenario_num])
   for (let i = 0; i < reasons.length; i++) {
     let reason = reasons[i]
     // insert tags into reason
     reason = tags.replace_in(reason)
-    // create message space
-    let t = chat_display.find(".time").last()
     dots = '●'
-    t.before(`<p style="background-color: #00a; color: #efefef">` + dots + `</p>`)
-    cur_message = t.prev()
-    scrollChat()
+    chat_display().append(`
+      <div class="received-msg">
+        <p style="background-color: #00a; color: #efefef">` + dots + `</p>
+      </div>
+    `)
+    cur_message = chat_display().find("p").last()
     // typing animation
     let typing_interval = setInterval(typing, 200)
     await sleep(reason.length*5)
@@ -48,7 +63,6 @@ async function explain(reasons) {
     clearInterval(typing_interval)
     // display message
     cur_message.html(reason).css({"background-color": "#00a", "color": "#efefef"}).addClass("explanation")
-    scrollChat()
   }
   // enable button after a delay
   setTimeout(function() { $("#submit").prop("disabled", false) }, 3000)
@@ -59,7 +73,7 @@ function submitSelection() {
   let scenario = scenarios[scenario_num]
   let married = scenario["marital_status"] == "married"
 
-  let selection_a = $("#spouse_a").val()
+  let selection_a = $(".spouse_a").last().val()
   let optimal_age_a = scenario["optimal_age_a"]
   let error_a = Math.abs(selection_a - optimal_age_a)
   let bonus_a = section == "testing" ? (1/18)*Math.max(0, 1 - error_a/4) : null
@@ -69,7 +83,7 @@ function submitSelection() {
   let error_b = null
   let bonus_b = null
   if (married) {
-    selection_b = $("#spouse_b").val()
+    selection_b = $(".spouse_b").last().val()
     optimal_age_b = scenario["optimal_age_b"]
     error_b = Math.abs(selection_b - optimal_age_b)
     if (section == "testing") bonus_b = (1/18)*Math.max(0, 1 - error_b/4)
@@ -93,13 +107,13 @@ function submitSelection() {
     success: function(data) {
       // post-selection changes
       $(".slider").prop("disabled", true)
-      $("#optimal_a").text(optimal_age_a)
-      $("#error_a").text(error_a)
-      if (section == "testing") $("#bonus_a").text((bonus_a > 0 ? `~` : '') + Math.round(100*bonus_a) + '¢')
+      $(".optimal_a").last().text(optimal_age_a)
+      $(".error_a").last().text(error_a)
+      if (section == "testing") $(".bonus_a").last().text((bonus_a > 0 ? `~` : '') + Math.trunc(100*bonus_a) + '¢')
       if (married) {
-        $("#optimal_b").text(optimal_age_b)
-        $("#error_b").text(error_b)
-        if (section == "testing") $("#bonus_b").text((bonus_b > 0 ? `~` : '') + Math.round(100*bonus_b) + '¢')
+        $(".optimal_b").last().text(optimal_age_b)
+        $(".error_b").last().text(error_b)
+        if (section == "testing") $(".bonus_b").last().text((bonus_b > 0 ? `~` : '') + Math.trunc(100*bonus_b) + '¢')
       }
       // give explanation if right protocol
       if (protocol != "none" && data !== null) {
@@ -127,12 +141,8 @@ async function clickedSubmit() {
       break
     case "Continue":
       // move on to the next scenario
+      submit_button.before(`<hr style="width: 80%">`)
       scenario_num++
-      let last_message = chat_display.find("p").last()
-      last_message.after("Scenario " + scenario_num + " completed")
-      let t = chat_display.find(".time").last()
-      t.html("<hr>")
-      scrollChat()
       nextScenario()
       submit_button.text("Submit")
       // enable button after a delay
@@ -165,61 +175,64 @@ function nextScenario() {
   $("progress").val(scenario_num/scenarios.length)
   let scenario = scenarios[scenario_num]
   let married = scenario["marital_status"] == "married"
-  let len_a = len_b = 100
+  let len_a = 100, len_b = 100
   if (married) {
     let a_over_b = (scenario["life_expectancy_a"] - scenario["current_age_a"])/(scenario["life_expectancy_b"] - scenario["current_age_b"])
     len_a = 100*Math.min(1, a_over_b)
     len_b = 100*Math.min(1, 1/a_over_b)
   }
-  $(".data-row").remove()
-  $("#board table tr:last").after(`
-    <tr class="data-row">
-      <th scope="row">Spouse A</th>
+  $("#submit").before(`
+    <table>
+      <tr>
+        <th scope="col" style="border: none"></th>
+        <th scope="col">PIA</th>
+        <th scope="col">Select Filing Age<br>(between 62 and 70)</th>
+        <th scope="col">Optimal<br>Age</th>
+        <th scope="col">Error</th>
+        ` + (section == "testing" ? `<th scope="col">Bonus<br>Earned</th>` : ``) + `
+      </tr>
+    </table>
+  `)
+  $("table tr:last").after(`
+    <tr>
+      <th scope="row">` + (married ? `Spouse A` : `Individual`) + `</th>
       <td>$` + scenario["pia_a"] + `</td>
       <td class="slider-cell">
         <output style="width: ` + len_a + `%">66</output>
-        <input type="range" min="` + scenario["current_age_a"] + `" max="` + scenario["life_expectancy_a"] + `" value="66" list="markers_a" class="slider" id="spouse_a" style="width: ` + len_a + `%">
-        <datalist id="markers_a" style="width: ` + len_a + `%">
+        <input type="range" min="` + scenario["current_age_a"] + `" max="` + scenario["life_expectancy_a"] + `" value="66" list="markers_a` + scenario_num + `" class="slider spouse_a" style="width: ` + len_a + `%">
+        <datalist id="markers_a` + scenario_num + `" style="width: ` + len_a + `%">
           <option value="` + scenario["current_age_a"] + `" label="` + scenario["current_age_a"] + `"></option>
           <option value="62"></option>
           <option value="70"></option>
           <option value="` + scenario["life_expectancy_a"] + `" label="` + scenario["life_expectancy_a"] + `"></option>
         </datalist>
       </td>
-      <td id="optimal_a"></td>
-      <td id="error_a"></td>
-      ` + (section == "testing" ? `<td id="bonus_a"></td>` : ``) + `
+      <td class="optimal_a"></td>
+      <td class="error_a"></td>
+      ` + (section == "testing" ? `<td class="bonus_a"></td>` : ``) + `
     </tr>
   `)
   if (married) {
-    $("#board table tr:last").after(`
-    <tr class="data-row">
+    $("table tr:last").after(`
+    <tr>
       <th scope="row">Spouse B</th>
       <td>$` + scenario["pia_b"] + `</td>
       <td class="slider-cell">
         <output style="width: ` + len_b + `%">66</output>
-        <input type="range" min="` + scenario["current_age_b"] + `" max="` + scenario["life_expectancy_b"] + `" value="66" list="markers_b" class="slider" id="spouse_b" style="width: ` + len_b + `%">
-        <datalist id="markers_b" style="width: ` + len_b + `%">
+        <input type="range" min="` + scenario["current_age_b"] + `" max="` + scenario["life_expectancy_b"] + `" value="66" list="markers_b` + scenario_num + `" class="slider spouse_b" style="width: ` + len_b + `%">
+        <datalist id="markers_b` + scenario_num + `" style="width: ` + len_b + `%">
           <option value="` + scenario["current_age_b"] + `" label="` + scenario["current_age_b"] + `"></option>
           <option value="62"></option>
           <option value="70"></option>
           <option value="` + scenario["life_expectancy_b"] + `" label="` + scenario["life_expectancy_b"] + `"></option>
         </datalist>
       </td>
-      <td id="optimal_b"></td>
-      <td id="error_b"></td>
-      ` + (section == "testing" ? `<td id="bonus_b"></td>` : ``) + `
+      <td class="optimal_b"></td>
+      <td class="error_b"></td>
+      ` + (section == "testing" ? `<td class="bonus_b"></td>` : ``) + `
     </tr>
   `)
   }
-
-  chat_display.append(`
-    <div class="received-msg">
-      Scenario ` + (scenario_num + 1) + `
-      <span class="time"></span>
-    </div>
-  `)
-  scrollChat()
 }
 
 // undeclared vars
@@ -238,7 +251,7 @@ $("#submit").on("click", clickedSubmit)
 // section vars
 let scenario_num = 0
 // chat vars
-let chat_display = $("#chat")
+const chat_display = () => $(".msg-inbox").last()
 let dots = '●'
 class explanation_tags {
   constructor(scenario) {
@@ -280,9 +293,9 @@ $.ajax({
   success: function(data) {
     scenarios = data
     if (section == "practice") {
-      timer_display.before("Practice Section")
+      $("nav p").text("Practice Section")
     } else {
-      timer_display.before("Testing Section")
+      $("nav p").text("Testing Section")
     }
     
     nextScenario()
