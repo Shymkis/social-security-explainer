@@ -109,7 +109,7 @@
     <div class="container">
         <h1>Final User Survey</h1>
         <p>Please carefully and thoughtfully complete all of the following questions.<br><br><b>You will NOT be
-                penalized for answering honestly; please answer truthfully for the integrity of our data.</b></p>
+                penalized for answering honestly.<br><br>Please answer truthfully for the integrity of our data.</b></p>
         <form id="preference-form" action="{{ url_for('final_survey_submit') }}" method="POST" onsubmit="return validateForm()">
             
         <div style="background-color:#e2e2f5;">
@@ -264,12 +264,13 @@
             </div>
         </div>
 
+        {% if protocol != "none" %}
         <div style="background-color:#f5e2e2;">
             <h2>Agent satisfaction</h2>
             <!-- Question Satisfaction Agent/Explanations 1 -->
             <div class="task-group">
                 <div class="question">
-                    <label class="question-label" for="q21">I was satisfied with the AI agent during the practice section.</label>
+                    <label class="question-label" for="q21">I enjoyed the AI agent.</label>
                     <div class="question-options">
                         <div class="options">
                             <label class="option-label">Strongly disagree</label>
@@ -306,7 +307,7 @@
             <!-- Question Satisfaction Agent/Explanations 2 -->
             <div class="task-group">
                 <div class="question">
-                    <label class="question-label" for="q22">I enjoyed the AI agent better in the practice section than in the test section.</label>
+                    <label class="question-label" for="q22">I was satisfied with the AI agent's explanations.</label>
                     <div class="question-options">
                         <div class="options">
                             <label class="option-label">Strongly disagree</label>
@@ -343,7 +344,7 @@
             <!-- Question Satisfaction Agent/Explanations 3 -->
             <div class="task-group">
                 <div class="question">
-                    <label class="question-label" for="q23">I found the collaboration with the AI agent in the practice section to be satisfactory.</label>
+                    <label class="question-label" for="q23">I found the collaboration with the AI agent to be enjoyable.</label>
                     <div class="question-options">
                         <div class="options">
                             <label class="option-label">Strongly disagree</label>
@@ -377,6 +378,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- Question Attention Check 1 -->
         <div class="task-group">
@@ -422,7 +424,7 @@
             <!-- Question Explanatory Power 1 -->
             <div class="task-group">
                 <div class="question">
-                    <label class="question-label" for="q31">The agent's explanations (blue messages) helped me understand the puzzles better.</label>
+                    <label class="question-label" for="q31">The agent's explanations (blue messages) helped me understand the scenarios better.</label>
                     <div class="question-options">
                         <div class="options">
                             <label class="option-label">Strongly disagree</label>
@@ -459,7 +461,7 @@
             <!-- Question Explanatory Power 2 -->
             <div class="task-group">
                 <div class="question">
-                    <label class="question-label" for="q32">Without the agent's explanations (blue messages), the puzzles would have been tougher.</label>
+                    <label class="question-label" for="q32">Without the agent's explanations (blue messages), the scenarios would have been tougher.</label>
                     <div class="question-options">
                         <div class="options">
                             <label class="option-label">Strongly disagree</label>
@@ -496,7 +498,7 @@
             <!-- Question Explanatory Power 3 -->
             <div class="task-group">
                 <div class="question">
-                    <label class="question-label" for="q33">The explanations (blue messages) from the agent gave me helpful insight to solve future puzzles.</label>
+                    <label class="question-label" for="q33">The explanations (blue messages) from the agent gave me helpful insight to solve future scenarios.</label>
                     <div class="question-options">
                         <div class="options">
                             <label class="option-label">Strongly disagree</label>
@@ -539,7 +541,7 @@
         function validateForm() {
             // Get all radio buttons with the name "qi" where i is the question number
             for (let i = 1; i <= 4; i++) {
-                if ({{ protocol|tojson }} == "none" && i == 3) continue
+                if ({{ protocol|tojson }} == "none" && (i == 2 || i == 3)) continue
                 let k_max = i < 4 ? 3 : 2;
                 for (let k = 1; k <= k_max; k++) {
                     let radios = document.getElementsByName("q" + i + k);

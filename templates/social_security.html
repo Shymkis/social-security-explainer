@@ -7,6 +7,15 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
   <title>Social Security Explainer</title>
+  {% if section == "practice" %}
+  <style>
+    @media (max-width: 900px) {
+      .ss-content {
+        margin-left: 250px;
+      }
+    }
+  </style>
+  {% endif %}
 </head>
 <body>
   <nav>
@@ -15,6 +24,14 @@
     <progress></progress>
   </nav>
   <div class="ss-content">
+    {% if section == "practice" %}
+    <div class="sidenav">
+      <b>Primary Insurance Amount (PIA):</b> The base monthly Social Security payout, proportional to the person's pre-retirement monthly income.<br>
+      <b>Full Retirement Age (FRA):</b> The age at which the full PIA is earned. This age is 67 for anyone born after 1960. Filing before FRA reduces PIA while filing after increases it.<br>
+      <b>Spousal benefit:</b> A person may raise their Social Security payout up to half of their spouse's PIA. Filing before FRA reduces this benefit.<br>
+      <b>Survivor benefit:</b> A person may raise their Social Security payout up to 100% of their deceased spouse's payout.
+    </div>
+    {% endif %}
     <button id="submit">Submit</button>
   </div>
   <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
