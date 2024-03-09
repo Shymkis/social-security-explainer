@@ -1,6 +1,6 @@
 rm(list=ls())
 
-setwd("C:/Users/jshym/OneDrive/Documents/School/TU/Graduate/Research/Not All Explanatations Are Created Equal/chess_puzzle_explainer/instance")
+setwd("C:/Users/jshym/OneDrive/Documents/School/TU/Graduate/Research/Not All Explanatations Are Created Equal/social_security_explainer/instance")
 
 library(RSQLite)
 library(dplyr)
@@ -27,19 +27,18 @@ get_survey_dfs <- function(raw_surveys) {
   names(s_dfs) <- types
   for (i in seq(along=types)) {
     old_survey_df <- raw_surveys[raw_surveys$type == types[[i]], ]
+    print(old_survey_df)
     new_survey_df <- old_survey_df %>% 
       rowwise() %>%
       do(data.frame(fromJSON(.$data, flatten = T))) %>%
-      ungroup() %>%
+      ungroup() %>% 
       bind_cols(old_survey_df %>% select(-c(data,type)))
     s_dfs[[i]] <- new_survey_df
   }
   return(s_dfs)
 }
 
-start_date <- as.POSIXct("2023-09-25")
-restart_date <- as.POSIXct("2023-10-01")
-rerestart_date <- as.POSIXct("2023-10-05")
+start_date <- as.POSIXct("2024-03-08")
 
 #### Obtain and clean SQLite table data frames ####
 
@@ -48,24 +47,25 @@ table_dfs <- get_table_dfs("application.db")
 explanations <- table_dfs$explanation
 explanations$protocol <- explanations$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 
-moves <- table_dfs$move %>% filter(start_time >= restart_date, mturk_id %>% startsWith("A"))
-moves$start_time <- moves$start_time %>% as.POSIXct()
-moves$end_time <- moves$end_time %>% as.POSIXct()
-moves$mistake <- moves$mistake %>% as.logical()
+selections <- table_dfs$selection %>% filter(timestamp >= start_date, mturk_id %>% startsWith("A"))
+selections$timestamp <- selections$timestamp %>% as.POSIXct()
 
-puzzles <- table_dfs$puzzle
-puzzles$theme <- puzzles$theme %>% as.factor()
+scenarios <- table_dfs$scenario %>% filter(section %in% c("practice", "testing"))
+scenarios$theme <- scenarios$theme %>% as.factor()
+scenarios$marital_status <- scenarios$marital_status %>% as.factor()
+scenarios$gender_a <- scenarios$gender_a %>% as.factor()
+scenarios$gender_b <- scenarios$gender_b %>% as.factor()
 
-sections <- table_dfs$section %>% filter(start_time >= restart_date, mturk_id %>% startsWith("A"))
+sections <- table_dfs$section %>% filter(start_time >= start_date, mturk_id %>% startsWith("A"))
 sections$section <- sections$section %>% as.factor()
 sections$protocol <- sections$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 sections$start_time <- sections$start_time %>% as.POSIXct()
 sections$end_time <- sections$end_time %>% as.POSIXct()
 
-surveys <- table_dfs$survey %>% filter(timestamp >= restart_date, mturk_id %>% startsWith("A"))
+surveys <- table_dfs$survey %>% filter(timestamp >= start_date, mturk_id %>% startsWith("A"))
 surveys$timestamp <- surveys$timestamp %>% as.POSIXct()
 
-users <- table_dfs$user %>% filter(start_time >= restart_date, mturk_id %>% startsWith("A"))
+users <- table_dfs$user %>% filter(start_time >= start_date, mturk_id %>% startsWith("A"))
 users$experiment_completed <- users$experiment_completed %>% as.logical()
 users$failed_attention_checks <- users$failed_attention_checks %>% as.logical()
 users$start_time <- users$start_time %>% as.POSIXct()

@@ -426,17 +426,17 @@ def final_survey_submit():
         
         # Get data from the form as a dictionary
         final_survey = {}
-        final_survey["sat-outcome-1"] = request.form.get("q11")
-        final_survey["sat-outcome-2"] = request.form.get("q12")
-        final_survey["sat-outcome-3"] = request.form.get("q13")
-        final_survey["sat-agent-1"] = request.form.get("q21")
-        final_survey["sat-agent-2"] = request.form.get("q22")
-        final_survey["sat-agent-3"] = request.form.get("q23")
+        final_survey["sat-outcome-1"] = request.form.get("q11") if request.form.get("q11") else "0"
+        final_survey["sat-outcome-2"] = request.form.get("q12") if request.form.get("q12") else "0"
+        final_survey["sat-outcome-3"] = request.form.get("q13") if request.form.get("q13") else "0"
+        final_survey["sat-agent-1"] = request.form.get("q21") if request.form.get("q21") else "0"
+        final_survey["sat-agent-2"] = request.form.get("q22") if request.form.get("q22") else "0"
+        final_survey["sat-agent-3"] = request.form.get("q23") if request.form.get("q23") else "0"
         final_survey["exp-power-1"] = request.form.get("q31") if request.form.get("q31") else "0"
         final_survey["exp-power-2"] = request.form.get("q32") if request.form.get("q32") else "0"
         final_survey["exp-power-3"] = request.form.get("q33") if request.form.get("q33") else "0"
-        final_survey["attention-check-1"] = request.form.get("q41")
-        final_survey["attention-check-2"] = request.form.get("q42")
+        final_survey["attention-check-1"] = request.form.get("q41") if request.form.get("q41") else "0"
+        final_survey["attention-check-2"] = request.form.get("q42") if request.form.get("q42") else "0"
         
         if final_survey["attention-check-1"] != "7":
             session["failed_attention_checks"] += 1
