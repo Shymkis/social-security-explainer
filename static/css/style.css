@@ -30,6 +30,15 @@ nav p, progress {
     gap: 20px;
     padding: 100px 0 400px 0;
 }
+.sidenav {
+    background-color: #eee;
+    box-shadow: rgb(0 0 0 / 25%) 0px 5px 5px 2px;
+    left: 10px;
+    padding: 5px;
+    position: fixed;
+    top: 100px;
+    width: 230px;
+}
 table {
     border-collapse: collapse;
     color: white;
