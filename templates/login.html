@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,3 +84,90 @@
     </div>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f7f7f7;
+        }
+        .content {
+          text-align: center;
+          width: 80%;
+          max-width: 600px;
+          padding: 20px;
+          border: 2px solid #22f; /* Frame border */
+          border-radius: 10px;
+          background-color: #f4f4ff;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .flashes {
+            list-style: none;
+            padding: 0;
+        }
+        .flashes li {
+            color: rgb(209, 15, 15);
+        }
+        .scroll-box {
+            max-height: 350px;
+            overflow: auto;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h2>"Not All Explanations are Created Equal: Investigating the Pitfalls of Current XAI Evaluation" Study</h2>
+        <h3>Enter your MTurk ID below to begin the experiment.</h3>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="{{ url_for('login') }}">
+            {{ form.csrf_token }}
+            <div style="color: #000000; text-align: center; padding-top: 10px; ">
+                {{ form.mturk_id.label(size=42, style="font-weight: bold") }}: {{ form.mturk_id(size=73, style="height: 24px;") }}
+            </div>
+            <div>
+                {{ form.submit(class="button", style="margin-top: 10px") }}
+            </div>
+        </form>
+        <div class="scroll-box", style="text-align: left">
+            <p style="margin: 0">
+                <strong>Duration:</strong> This study takes approximately 25 minutes to complete.<br><br>
+                <strong>Compensation:</strong> You will get a base compensation of $2.50 for completing the study. You will also get a bonus of up to $1.00 based on your performance.<br><br>
+                <strong>Description:</strong> You will be presented with a number of Social Security scenarios. Your goal is to pick the best filing ages for those in each scenario to maximize their Social Security payout. You will also complete several surveys.<br><br>
+                <strong>Disclaimer:</strong> <span style="color: red">While the situations presented are intended to represent realistic scenarios, nothing within this study is financial advice. Talk with a financial professional if you need financial advice.</span><br><br>
+                <strong>
+                    Do not refresh or go back to the previous page. You will be removed.<br><br>
+                    Carefully review the consent form on the next page for any further information.<br><br>
+                    Please complete this study using a PC or similar device (avoid mobile).
+                </strong>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+>>>>>>> 1c42c98fc2fa2616033b24b60c18ed8cfce123e2
