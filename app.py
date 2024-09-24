@@ -82,7 +82,7 @@ class User(db.Model):
         return str(self.mturk_id)
 
     def __repr__(self):
-        return "<User MTURK ID: %r>" % (self.mturk_id)
+        return "<User ID: %r>" % (self.mturk_id)
 
 class Survey(db.Model):
     # ID info
@@ -202,6 +202,10 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for("consent"))
 
+    protocol_id = int(request.args.get("p")) if request.args.get("p") else None
+    if protocol_id is not None:
+        session["protocol"] = PROTOCOLS[protocol_id]
+
     form = LoginForm()
     if form.validate_on_submit():
         mturk_id = form.mturk_id.data
@@ -251,7 +255,8 @@ def consent_submit():
             db.session.commit()
             
             # Assign a random intervention condition
-            session["protocol"] = choice(PROTOCOLS)
+            if session.get("protocol") is None:
+                session["protocol"] = choice(PROTOCOLS)
             # Add to user model
             user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
             user.protocol = session["protocol"]
