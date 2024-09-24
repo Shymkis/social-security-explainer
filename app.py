@@ -480,7 +480,7 @@ def post_survey():
 
         user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
         if not user.experiment_completed:
-            base_comp = 2.5
+            base_comp = 2.7
             session["base_comp"] = base_comp
             bonus_comp = calculate_bonus_comp(session["mturk_id"])
             session["bonus_comp"] = bonus_comp

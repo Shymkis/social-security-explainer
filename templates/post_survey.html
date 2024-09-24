@@ -118,12 +118,13 @@
         <br><br>
         <p class="h6">Base Compensation: <mark>{{ "$%.2f"|format(base_comp) }}</mark></p>
         <p class="h6">Bonus Compensation: <mark>{{ "$%.2f"|format(bonus_comp) }}</mark></p>
-        <p class="h6">Completion Code: <mark>{{ completion_code }}</mark></p>
+        <!-- <p class="h6">Completion Code: <mark>{{ completion_code }}</mark></p> -->
+        <p class="h6">Completion Code: <mark>C198WIFY</mark></p>
         <br><br>
         <p class="h5" style="padding-left: 10px">Thank you!</p>
         <br>
         <h1>Feedback</h1>
-        <p>Please submit your HIT code before completing this survey.</b></p>
+        <p>Please submit your completion code before completing this survey.</b></p>
         <form id="preference-form" action="{{ url_for('post_survey_submit') }}" method="POST" onsubmit="return validateForm()">
 
             <!-- Question 1 (with a text box) -->
