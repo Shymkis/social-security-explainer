@@ -184,11 +184,12 @@ def back_clear_session_and_logout():
     flash("You have violated the terms of the experiment by attempting to return to a previous section. Please return your submission on Prolific.")
     return redirect(url_for("login"))
 
-@app.route("/failed_check_clear_session_and_logout/")
-def failed_check_clear_session_and_logout():
+@app.route("/failed_checks_clear_session_and_logout/")
+def failed_checks_clear_session_and_logout():
     logout_user()
     session.clear()
     flash("You have failed 2 or more attention checks. Please return your submission on Prolific.")
+    return redirect(url_for("login"))
 
 @app.route("/no_consent_clear_session_and_logout/")
 def no_consent_clear_session_and_logout():
@@ -208,13 +209,13 @@ def is_session_expired():
 @app.before_request
 def check_session_expiry():
     if current_user.is_authenticated and is_session_expired():
-        clear_session_and_logout()
+        return clear_session_and_logout()
     if session.get("failed_attention_checks") is not None and session.get("failed_attention_checks") >= 2:
         # Add to user model
         user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
         user.failed_attention_checks = True
         db.session.commit()
-        failed_check_clear_session_and_logout()
+        return failed_checks_clear_session_and_logout()
 
 # Index page
 @app.route("/")
