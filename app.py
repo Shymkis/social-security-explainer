@@ -13,7 +13,8 @@ PROTOCOLS = ["none", "placebic", "actionable"]
 
 # forms.py
 class LoginForm(FlaskForm):
-	mturk_id = StringField("MTurk ID", validators = [DataRequired()])
+	# mturk_id = StringField("MTurk ID", validators = [DataRequired()])
+	mturk_id = StringField("Prolific ID", validators = [DataRequired()])
 	submit = SubmitField("Begin Experiment")
 
 # configuration.py
@@ -230,7 +231,8 @@ def login():
             if user.experiment_completed:
                 flash("Error! You have already completed the experiment.")
             else:
-                flash("Error! MTurk ID already used. Contact the researchers if you believe this to be in error.")
+                # flash("Error! MTurk ID already used. Contact the researchers if you believe this to be in error.")
+                flash("Error! Prolific ID already used. Contact the researchers if you believe this to be in error.")
             return redirect(url_for("login"))
 
     return render_template("login.html", title="Sign In", form=form)
