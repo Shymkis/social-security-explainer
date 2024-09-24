@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="en" class="notranslate" translate="no">
 <head>
@@ -43,50 +42,4 @@
     var protocol = {{ protocol|tojson }}
   </script>
 </body>
-=======
-<!DOCTYPE html>
-<html lang="en" class="notranslate" translate="no">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="google" content="notranslate" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-  <title>Social Security Explainer</title>
-  {% if section == "practice" %}
-  <style>
-    @media (max-width: 900px) {
-      .ss-content {
-        margin-left: 250px;
-      }
-    }
-  </style>
-  {% endif %}
-</head>
-<body>
-  <nav>
-    <p></p>
-    <p id="timer"></p>
-    <progress></progress>
-  </nav>
-  <div class="ss-content">
-    {% if section == "practice" %}
-    <div class="sidenav">
-      <b>Primary Insurance Amount (PIA):</b> The base monthly Social Security payout at FRA.<br>
-      <b>Full Retirement Age (FRA):</b> This age is 67. Filing before FRA reduces monthly payment while filing after increases it.<br>
-      <b>Spousal benefit:</b> A person may raise their Social Security payout up to half of their spouse's PIA. Filing before FRA reduces this benefit.<br>
-      <b>Survivor benefit:</b> A person may raise their Social Security payout up to 100% of their deceased spouse's payout.
-    </div>
-    {% endif %}
-    <button id="submit">Submit</button>
-  </div>
-  <script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/countdown.js') }}"></script>
-  <script defer src="{{ url_for('static', filename='js/script.js') }}"></script>
-  <script>
-    var section = {{ section|tojson }}
-    var protocol = {{ protocol|tojson }}
-  </script>
-</body>
->>>>>>> 1c42c98fc2fa2616033b24b60c18ed8cfce123e2
 </html>
