@@ -234,7 +234,7 @@ def login():
     protocol_id = int(request.args.get("p")) if request.args.get("p") else None
     if protocol_id is not None:
         # session["protocol"] = PROTOCOLS[protocol_id]
-        session["protocol"] = PROTOCOLS[1]
+        session["protocol"] = PROTOCOLS[2]
 
     form = LoginForm()
     if form.validate_on_submit():
