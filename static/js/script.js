@@ -180,7 +180,7 @@ function nextScenario() {
       <tr>
         <th scope="col" style="border: none"></th>
         <th scope="col">PIA</th>
-        <th scope="col">Select Filing Age<br>(between 62 and 70)</th>
+        <th scope="col">Lifespan<br><span style="font-size:14px">(Select filing age between 62 and 70)</span></th>
         <th scope="col">Optimal<br>Age</th>
         <th scope="col">Error</th>
         ` + (section == "testing" ? `<th scope="col">Bonus<br>Earned</th>` : ``) + `

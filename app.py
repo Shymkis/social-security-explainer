@@ -13,7 +13,8 @@ PROTOCOLS = ["none", "placebic", "actionable"]
 
 # forms.py
 class LoginForm(FlaskForm):
-	mturk_id = StringField("MTurk ID", validators = [DataRequired()])
+	# mturk_id = StringField("MTurk ID", validators = [DataRequired()])
+	mturk_id = StringField("Prolific ID", validators = [DataRequired()])
 	submit = SubmitField("Begin Experiment")
 
 # configuration.py
@@ -82,7 +83,7 @@ class User(db.Model):
         return str(self.mturk_id)
 
     def __repr__(self):
-        return "<User MTURK ID: %r>" % (self.mturk_id)
+        return "<User ID: %r>" % (self.mturk_id)
 
 class Survey(db.Model):
     # ID info
@@ -166,7 +167,35 @@ def row2dict(r):
 def clear_session_and_logout():
     logout_user()
     session.clear()
-    flash("You have either run out of time or have violated the terms of the experiment.")
+    flash("You have either run out of time or have violated the terms of the experiment. Please return your submission on Prolific.")
+    return redirect(url_for("login"))
+
+@app.route("/timeout_clear_session_and_logout/")
+def timeout_clear_session_and_logout():
+    logout_user()
+    session.clear()
+    flash("You have run out of time. Please return your submission on Prolific.")
+    return redirect(url_for("login"))
+
+@app.route("/back_clear_session_and_logout/")
+def back_clear_session_and_logout():
+    logout_user()
+    session.clear()
+    flash("You have violated the terms of the experiment by attempting to return to a previous section. Please return your submission on Prolific.")
+    return redirect(url_for("login"))
+
+@app.route("/failed_checks_clear_session_and_logout/")
+def failed_checks_clear_session_and_logout():
+    logout_user()
+    session.clear()
+    flash("You have failed 2 or more attention checks. Please return your submission on Prolific.")
+    return redirect(url_for("login"))
+
+@app.route("/no_consent_clear_session_and_logout/")
+def no_consent_clear_session_and_logout():
+    logout_user()
+    session.clear()
+    flash("You have not provided your consent to participate. Please return your submission on Prolific.")
     return redirect(url_for("login"))
 
 def is_session_expired():
@@ -180,13 +209,13 @@ def is_session_expired():
 @app.before_request
 def check_session_expiry():
     if current_user.is_authenticated and is_session_expired():
-        clear_session_and_logout()
+        return clear_session_and_logout()
     if session.get("failed_attention_checks") is not None and session.get("failed_attention_checks") >= 2:
         # Add to user model
         user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
         user.failed_attention_checks = True
         db.session.commit()
-        clear_session_and_logout()
+        return failed_checks_clear_session_and_logout()
 
 # Index page
 @app.route("/")
@@ -201,6 +230,11 @@ def index():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("consent"))
+
+    protocol_id = int(request.args.get("p")) if request.args.get("p") else None
+    if protocol_id is not None:
+        # session["protocol"] = PROTOCOLS[protocol_id]
+        session["protocol"] = PROTOCOLS[2]
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -226,7 +260,8 @@ def login():
             if user.experiment_completed:
                 flash("Error! You have already completed the experiment.")
             else:
-                flash("Error! MTurk ID already used. Contact the researchers if you believe this to be in error.")
+                # flash("Error! MTurk ID already used. Contact the researchers if you believe this to be in error.")
+                flash("Error! Prolific ID already used. Contact the researchers if you believe this to be in error.")
             return redirect(url_for("login"))
 
     return render_template("login.html", title="Sign In", form=form)
@@ -251,7 +286,8 @@ def consent_submit():
             db.session.commit()
             
             # Assign a random intervention condition
-            session["protocol"] = choice(PROTOCOLS)
+            if session.get("protocol") is None:
+                session["protocol"] = choice(PROTOCOLS)
             # Add to user model
             user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
             user.protocol = session["protocol"]
@@ -262,7 +298,7 @@ def consent_submit():
             return redirect(url_for("demographics_survey"))
         else:
             print("Consent not given")
-            return clear_session_and_logout()
+            return no_consent_clear_session_and_logout()
 
 @app.route("/demographics_survey/", methods=["GET", "POST"])
 def demographics_survey():
@@ -320,7 +356,7 @@ def practice():
 
     if session.get("practice_page_loaded"):
         print("User is reloading practice page.")
-        return redirect(url_for("clear_session_and_logout"))
+        return redirect(url_for("reload_clear_session_and_logout"))
 
     session["practice_page_loaded"] = True
 
@@ -336,7 +372,7 @@ def testing():
 
     if session.get("testing_page_loaded"):
         print("User is reloading testing page.")
-        return redirect(url_for("clear_session_and_logout"))
+        return redirect(url_for("reload_clear_session_and_logout"))
 
     session["testing_page_loaded"] = True
 
@@ -473,7 +509,7 @@ def post_survey():
 
         user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
         if not user.experiment_completed:
-            base_comp = 2.5
+            base_comp = 2.7
             session["base_comp"] = base_comp
             bonus_comp = calculate_bonus_comp(session["mturk_id"])
             session["bonus_comp"] = bonus_comp
