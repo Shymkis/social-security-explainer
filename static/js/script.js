@@ -287,7 +287,7 @@ class explanation_tags {
 
   replace_in(explanation) {
     for (let tag in this) {
-      explanation = explanation.replace("{"+tag+"}", this[tag])
+      explanation = explanation.replaceAll("{"+tag+"}", this[tag])
     }
     return explanation
   }
