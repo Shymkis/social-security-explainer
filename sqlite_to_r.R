@@ -38,13 +38,14 @@ get_survey_dfs <- function(raw_surveys) {
   return(s_dfs)
 }
 
-start_date <- as.POSIXct("2024-03-08")
+# start_date <- as.POSIXct("2024-03-08")
+start_date <- as.POSIXct("2024-09-24")
 
 #### Obtain and clean SQLite table data frames ####
 
-table_dfs <- get_table_dfs("application.db")
+table_dfs <- get_table_dfs("application 2.db")
 
-users <- table_dfs$user %>% filter(start_time >= start_date, mturk_id %>% startsWith("A"))
+users <- table_dfs$user %>% filter(start_time >= start_date, mturk_id %>% startsWith("6") | mturk_id %>% startsWith("5"))
 users$experiment_completed <- users$experiment_completed %>% as.logical()
 users$failed_attention_checks <- users$failed_attention_checks %>% as.logical()
 users$start_time <- users$start_time %>% as.POSIXct()
@@ -52,23 +53,12 @@ users$end_time <- users$end_time %>% as.POSIXct()
 users$consent <- users$consent %>% as.logical()
 users$protocol <- users$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 users$study_duration <- users$end_time - users$start_time
-users$bonus_comp <- pmax(users$compensation - 2.5, 0)
+users$bonus_comp <- pmax(users$compensation - 2.7, 0)
 
 explanations <- table_dfs$explanation
 explanations$protocol <- explanations$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 
-selections <- table_dfs$selection %>% filter(timestamp >= start_date, mturk_id %>% startsWith("A"))
-selections$timestamp <- selections$timestamp %>% as.POSIXct()
-selections$user.protocol <- (selections %>% left_join(users, join_by(mturk_id)))$protocol
-selections$section <- (selections %>% left_join(sections, join_by(section_id==id)))$section
-
-scenarios <- table_dfs$scenario %>% filter(section %in% c("practice", "testing"))
-scenarios$theme <- scenarios$theme %>% as.factor()
-scenarios$marital_status <- scenarios$marital_status %>% as.factor()
-scenarios$gender_a <- scenarios$gender_a %>% as.factor()
-scenarios$gender_b <- scenarios$gender_b %>% as.factor()
-
-sections <- table_dfs$section %>% filter(start_time >= start_date, mturk_id %>% startsWith("A"))
+sections <- table_dfs$section %>% filter(start_time >= start_date, mturk_id %>% startsWith("6") | mturk_id %>% startsWith("5"))
 sections$section <- sections$section %>% as.factor()
 sections$protocol <- sections$protocol %>% ordered(levels=c("none", "placebic", "actionable"))
 sections$start_time <- sections$start_time %>% as.POSIXct()
@@ -79,7 +69,18 @@ sections$time_per_selection <- sections$duration/sections$num_selections
 sections$error_per_section <- sections$error/sections$num_selections
 sections$user.protocol <- (sections %>% left_join(users, join_by(mturk_id)))$protocol.y
 
-surveys <- table_dfs$survey %>% filter(timestamp >= start_date, mturk_id %>% startsWith("A"))
+selections <- table_dfs$selection %>% filter(timestamp >= start_date, mturk_id %>% startsWith("6") | mturk_id %>% startsWith("5"))
+selections$timestamp <- selections$timestamp %>% as.POSIXct()
+selections$user.protocol <- (selections %>% left_join(users, join_by(mturk_id)))$protocol
+selections$section <- (selections %>% left_join(sections, join_by(section_id==id)))$section
+
+scenarios <- table_dfs$scenario %>% filter(section %in% c("practice", "testing"))
+scenarios$theme <- scenarios$theme %>% as.factor()
+scenarios$marital_status <- scenarios$marital_status %>% as.factor()
+scenarios$gender_a <- scenarios$gender_a %>% as.factor()
+scenarios$gender_b <- scenarios$gender_b %>% as.factor()
+
+surveys <- table_dfs$survey %>% filter(timestamp >= start_date, mturk_id %>% startsWith("6") | mturk_id %>% startsWith("5"))
 surveys$timestamp <- surveys$timestamp %>% as.POSIXct()
 surveys$user.protocol <- (surveys %>% left_join(users, join_by(mturk_id)))$protocol
 
@@ -91,6 +92,10 @@ demographics <- survey_dfs$demographics
 demographics$age <- demographics$age %>% as.ordered()
 demographics$gender <- demographics$gender %>% as.factor()
 demographics$ethnicity <- demographics$ethnicity %>% as.factor()
+demographics$education <- demographics$education %>% ordered(
+  levels=c("High school", "Some college, no degree", "Associate degree", "Bachelor's degree", "Master's/Graduate Degree"),
+  labels=c("High school", "Some college", "Associate", "Bachelor", "Master+")
+)
 demographics$attention.check <- demographics$attention.check %>% as.integer()
 demographics$soc.sec.skill <- demographics$soc.sec.skill %>% ordered(levels=c("Beginner", "Intermediate", "Expert"))
 
@@ -134,17 +139,48 @@ users %>% filter(experiment_completed) %>% select(protocol) %>% table()
 
 #### Demographics ####
 
-demographics$age %>% table()
-demographics$gender %>% table()
-demographics$ethnicity %>% table()
-demographics$education %>% table()
-demographics$soc.sec.skill %>% table()
+demographics %>% ggplot(aes(x = age)) +
+  geom_bar(fill = "skyblue", color = "black") +
+  labs(title = "Distribution of Age Groups", x = "Age group", y = "Count") +
+  theme_minimal()
+
+demographics %>% group_by(gender) %>% summarize(count = n()) %>% ggplot(aes(x = "", y = count, fill = gender)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar("y", start = 0) +
+  labs(title = "Distribution of Gender", x = "Gender", y = "Count") +
+  theme_void() +
+  theme(
+    legend.title = element_blank(),
+    legend.position = c(.18, .85),
+    plot.title = element_text(vjust = -5, hjust = .5)
+  )
+
+demographics %>% group_by(ethnicity) %>% summarize(count = n()) %>% ggplot(aes(x = "", y = count, fill = ethnicity)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar("y", start = 0) +
+  labs(title = "Distribution of Ethnicity", x = "Enthicity", y = "Count") +
+  theme_void() +
+  theme(
+    legend.title = element_blank(),
+    legend.position = c(.18, .85),
+    plot.title = element_text(vjust = -5, hjust = .5)
+  )
+
+demographics %>% ggplot(aes(x = education)) +
+  geom_bar(fill = "skyblue", color = "black") +
+  labs(title = "Distribution of Education Levels", x = "Education level", y = "Count") +
+  theme_minimal()
+
+demographics %>% ggplot(aes(x = soc.sec.skill)) +
+  geom_bar(fill = "skyblue", color = "black") +
+  labs(title = "Distribution of Social Security Skill", x = "Skill level", y = "Count") +
+  theme_minimal()
 
 sections %>% 
   filter(section == "testing", num_scenarios > 0) %>% 
   inner_join(demographics, join_by(mturk_id)) %>% 
-  ggplot(aes(x = soc.sec.skill, y = error/num_selections)) + 
-  geom_boxplot() + 
+  ggplot(aes(x = soc.sec.skill, y = error/num_selections)) +
+  geom_boxplot() +
   ylab("error per selection")
 
 #### Attention Checks ####
@@ -275,12 +311,36 @@ scenarios %>%
   geom_line() +
   geom_label()
 
-#### Other Performance Metrics ####
-
-# Correlation between practice and testing
-# Progression during practice or testing
-# Bonus per puzzle
-# Scale within puzzle
+scenario_errors <- scenarios %>% 
+  inner_join(selections, join_by(id == scenario_id, section)) %>% 
+  group_by(section, id, order, user.protocol) %>% 
+  summarize(
+    count = n(),
+    error_a = sum(error_a, na.rm = T),
+    error_b = sum(error_b, na.rm = T),
+    error_per_selection = (error_a + error_b)/count/(1+as.integer(error_b!=0))
+  ) %>% 
+  arrange(section, order, user.protocol)
+scenario_errors$order[31:60] <- scenario_errors$order[31:60] + 10
+scenario_errors %>% 
+  ggplot(aes(x = order, y = error_per_selection, col = user.protocol)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 3), se = F) +
+  scale_x_continuous(breaks = 1:20) +
+  scale_color_manual(values = c("none" = "#0072B2", "placebic" = "#D55E00", "actionable" = "#009E73")) +
+  geom_vline(xintercept = 10.5, linetype = "dotted") +
+  annotate("text", x = 5.5, y = .082, label = "Practice", size = 5) +
+  annotate("text", x = 15.5, y = .082, label = "Testing", size = 5) +
+  labs(
+    title = "Scenario Error Progression by Section",
+    x = "Puzzle number",
+    y = "Error per selection",
+    color = "User protocol"
+  ) +
+  theme(
+    panel.grid.minor.x = element_blank(),
+    legend.position = c(.14, .86)
+  )
 
 #### Final Surveys ####
 

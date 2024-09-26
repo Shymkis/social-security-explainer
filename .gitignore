@@ -3,3 +3,5 @@ __pycache__/
 static/data/*.db
 pyvenv.cfg
 instance/*.db
+instance/.RData
+instance/.Rhistory
