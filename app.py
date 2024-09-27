@@ -236,7 +236,7 @@ def login():
         if protocol_id < len(PROTOCOLS) and protocol_id >= 0:
             session["protocol"] = PROTOCOLS[protocol_id]
         elif protocol_id == -1:
-            session["protocol"] = PROTOCOLS[1]
+            session["protocol"] = PROTOCOLS[0]
 
     form = LoginForm()
     if form.validate_on_submit():
