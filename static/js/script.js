@@ -70,16 +70,19 @@ function submitSelection() {
   let selection_a = $(".spouse_a").last().val()
   let optimal_age_a = scenario["optimal_age_a"]
   let error_a = Math.abs(selection_a - optimal_age_a)
+  let error_a_color = error_a > 3 ? "red" : error_a > 0 ? "orange" : "lime"
   let bonus_a = section == "testing" ? (1/18)*Math.max(0, 1 - error_a/4) : null
 
   let selection_b = null
   let optimal_age_b = null
   let error_b = null
+  let error_b_color = null
   let bonus_b = null
   if (married) {
     selection_b = $(".spouse_b").last().val()
     optimal_age_b = scenario["optimal_age_b"]
     error_b = Math.abs(selection_b - optimal_age_b)
+    error_b_color = error_b > 3 ? "red" : error_b > 0 ? "orange" : "lime"
     if (section == "testing") bonus_b = (1/18)*Math.max(0, 1 - error_b/4)
   }
   // log data
@@ -101,13 +104,13 @@ function submitSelection() {
     success: function(data) {
       // post-selection changes
       $(".slider").prop("disabled", true)
-      $(".optimal_a").last().text(optimal_age_a)
-      $(".error_a").last().text(error_a)
-      if (section == "testing") $(".bonus_a").last().text((bonus_a > 0 ? `~` : '') + Math.trunc(100*bonus_a) + '¢')
+      $(".optimal_a").last().text(optimal_age_a).css("color","cyan")
+      $(".error_a").last().text(error_a).css("color",error_a_color)
+      if (section == "testing") $(".bonus_a").last().text((bonus_a > 0 ? `~` : '') + Math.trunc(100*bonus_a) + '¢').css("color",error_a_color)
       if (married) {
-        $(".optimal_b").last().text(optimal_age_b)
-        $(".error_b").last().text(error_b)
-        if (section == "testing") $(".bonus_b").last().text((bonus_b > 0 ? `~` : '') + Math.trunc(100*bonus_b) + '¢')
+        $(".optimal_b").last().text(optimal_age_b).css("color","cyan")
+        $(".error_b").last().text(error_b).css("color",error_b_color)
+        if (section == "testing") $(".bonus_b").last().text((bonus_b > 0 ? `~` : '') + Math.trunc(100*bonus_b) + '¢').css("color",error_b_color)
       }
       // give explanation if right protocol
       if (protocol != "none" && data !== null) {
@@ -235,7 +238,7 @@ let cur_message, scenarios
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 // timer vars
 let timer_display = $("#timer")
-let time_limit = 60*10
+let time_limit = 60*7.5
 let timer = new CountDownTimer(time_limit)
 timer.onTick(formatTime).onTick(timesUp)
 // slider listeners
@@ -284,7 +287,7 @@ class explanation_tags {
 
   replace_in(explanation) {
     for (let tag in this) {
-      explanation = explanation.replace("{"+tag+"}", this[tag])
+      explanation = explanation.replaceAll("{"+tag+"}", this[tag])
     }
     return explanation
   }
@@ -298,9 +301,11 @@ $.ajax({
   success: function(data) {
     scenarios = data
     if (section == "practice") {
-      $("nav p").text("Practice Section")
+      $("#section").text("Practice Section")
+      $("#instructions").text("You will be given a series of scenarios. Select the age at which the individual(s) should file for Social Security benefits. Your goal is to optimize their payout. This section is meant to prepare you for the Testing section.")
     } else {
-      $("nav p").text("Testing Section")
+      $("#section").text("Testing Section")
+      $("#instructions").text("You will be given a series of scenarios. Select the age at which the individual(s) should file for Social Security benefits. Your goal is to optimize their payout. You will now be given bonus compensation for making accurate decisions.")
     }
     
     nextScenario()

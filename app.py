@@ -233,8 +233,10 @@ def login():
 
     protocol_id = int(request.args.get("p")) if request.args.get("p") else None
     if protocol_id is not None:
-        # session["protocol"] = PROTOCOLS[protocol_id]
-        session["protocol"] = PROTOCOLS[2]
+        if protocol_id < len(PROTOCOLS) and protocol_id >= 0:
+            session["protocol"] = PROTOCOLS[protocol_id]
+        elif protocol_id == -1:
+            session["protocol"] = PROTOCOLS[2]
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -509,7 +511,7 @@ def post_survey():
 
         user = User.query.filter_by(mturk_id=session["mturk_id"]).first()
         if not user.experiment_completed:
-            base_comp = 2.7
+            base_comp = 2.0
             session["base_comp"] = base_comp
             bonus_comp = calculate_bonus_comp(session["mturk_id"])
             session["bonus_comp"] = bonus_comp

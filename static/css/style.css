@@ -21,6 +21,9 @@ nav {
 nav p, progress {
     margin: auto;
 }
+#instructions {
+    font-size: 14px;
+}
 #timer {
     color: #DB7C26;
 }
@@ -28,7 +31,7 @@ nav p, progress {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    padding: 100px 0 400px 0;
+    padding: 120px 0 380px 0;
 }
 .sidenav {
     background-color: #eee;
@@ -36,7 +39,7 @@ nav p, progress {
     left: 10px;
     padding: 5px;
     position: fixed;
-    top: 100px;
+    top: 120px;
     width: 230px;
 }
 table {
@@ -49,6 +52,7 @@ table {
 }
 th, td {
     border: 1px solid;
+    border-color: white !important;
     padding: 5px;
 }
 .slider-cell {
