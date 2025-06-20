@@ -1,6 +1,6 @@
 rm(list=ls())
 
-setwd("C:/Users/jshym/OneDrive/Documents/School/TU/Graduate/Research/Not All Explanatations Are Created Equal/social_security_explainer/instance")
+# setwd to the instance folder
 
 library(RSQLite)
 library(dplyr)
@@ -8,6 +8,7 @@ library(tidyr)
 library(jsonlite)
 library(ggplot2)
 library(effectsize)
+library(TOSTER)
 
 get_table_dfs <- function(db_filepath) {
   con <- dbConnect(drv=RSQLite::SQLite(), dbname=db_filepath)
@@ -91,10 +92,13 @@ survey_dfs <- get_survey_dfs(surveys)
 demographics <- survey_dfs$demographics
 demographics$age <- demographics$age %>% as.ordered()
 demographics$gender <- demographics$gender %>% as.factor()
-demographics$ethnicity <- demographics$ethnicity %>% as.factor()
+demographics$ethnicity <- demographics$ethnicity %>% factor(
+  levels=c("Native or American Indian", "Hispanic/Latino", "Asian or Pacific Islander", "White", "Black or African American", "Other"),
+  labels=c("Native American", "Hispanic/Latino", "AAPI", "White", "Black", "Other")
+)
 demographics$education <- demographics$education %>% ordered(
-  levels=c("High school", "Some college, no degree", "Associate degree", "Bachelor's degree", "Master's/Graduate Degree"),
-  labels=c("High school", "Some college", "Associate", "Bachelor", "Master+")
+  levels=c("Less than high school", "High school", "Some college, no degree", "Associate degree", "Bachelor's degree", "Master's/Graduate Degree", "PhD or similar"),
+  labels=c("< High school", "High school", "Some college", "Associate", "Bachelor", "Master", "PhD")
 )
 demographics$attention.check <- demographics$attention.check %>% as.integer()
 demographics$soc.sec.skill <- demographics$soc.sec.skill %>% ordered(levels=c("Beginner", "Intermediate", "Expert"))
@@ -149,41 +153,56 @@ users.completed %>% select(protocol) %>% table()
 demographics.completed %>% 
   ggplot(aes(x = age)) +
   geom_bar(fill = "skyblue", color = "black") +
-  labs(title = "Distribution of Age Groups", x = "Age group", y = "Count") +
+  labs(
+    # title = "Distribution of Age Groups",
+    x = "Age group", y = "Count") +
   theme_minimal()
 
 demographics.completed %>% group_by(gender) %>% summarize(count = n()) %>% 
   ggplot(aes(x = "", y = count, fill = gender)) +
-  geom_bar(stat = "identity", width = 1, color = "white") +
-  coord_polar("y", start = 0) +
-  labs(title = "Distribution of Gender", x = "Gender", y = "Count") +
+  geom_bar(stat = "identity", color = "black") +
+  coord_polar("y") +
+  labs(
+    # title = "Distribution of Gender",
+    x = "Gender", y = "Count") +
   theme_void() +
   theme(
+    plot.margin = margin(t=-10,b=-10,r=-10),
     legend.title = element_blank(),
-    legend.position = c(.18, .85),
-    plot.title = element_text(vjust = -5, hjust = .5)
+    legend.position = "left",
+    legend.margin = margin(r=-10)
+    # plot.title = element_text(vjust = -5, hjust = .5)
   )
 
 demographics.completed %>% 
   group_by(ethnicity) %>% summarize(count = n()) %>% ggplot(aes(x = "", y = count, fill = ethnicity)) +
-  geom_bar(stat = "identity", width = 1, color = "white") +
+  geom_bar(stat = "identity", width = 1, color = "black") +
   coord_polar("y", start = 0) +
-  labs(title = "Distribution of Ethnicity", x = "Enthicity", y = "Count") +
+  labs(
+    # title = "Distribution of Ethnicity",
+    x = "Enthicity", y = "Count") +
   theme_void() +
   theme(
+    plot.margin = margin(t=-10,b=-10,r=-10),
     legend.title = element_blank(),
-    legend.position = c(.18, .85),
-    plot.title = element_text(vjust = -5, hjust = .5)
+    legend.position = "left",
+    legend.margin = margin(r=-10)
+    # plot.title = element_text(vjust = -5, hjust = .5)
   )
 
 demographics.completed %>% ggplot(aes(x = education)) +
   geom_bar(fill = "skyblue", color = "black") +
-  labs(title = "Distribution of Education Levels", x = "Education level", y = "Count") +
+  labs(
+    # title = "Distribution of Education Levels",
+    x = "Education level", y = "Count") +
+  scale_x_discrete(guide = guide_axis(n.dodge = 2)) +
   theme_minimal()
 
 demographics.completed %>% ggplot(aes(x = soc.sec.skill)) +
   geom_bar(fill = "skyblue", color = "black") +
-  labs(title = "Distribution of Social Security Skill", x = "Skill level", y = "Count") +
+  labs(
+    # title = "Distribution of Domain Knowledge",
+    x = "Domain expertise", y = "Count") +
   theme_minimal()
 
 sections.completed %>% 
@@ -222,40 +241,20 @@ users.completed %>% select(mturk_id, bonus_comp) %>% arrange(mturk_id)
 
 feedback %>% select(text) %>% print(n = 500)
 
-#### Performance: Total Error ####
+#### Performance: Error ####
 
 # Box plots
-sections.completed %>% ggplot(aes(x = user.protocol, y = error, col = section)) + geom_boxplot()
-# Tests
-anova.error.all <- aov(error ~ user.protocol, data = sections.completed)
-tukey.error.all <- TukeyHSD(anova.error.all)
-anova.error.practice <- aov(error ~ user.protocol, data = sections.completed %>% filter(section == "practice"))
-tukey.error.practice <- TukeyHSD(anova.error.practice)
-anova.error.testing <- aov(error ~ user.protocol, data = sections.completed %>% filter(section == "testing"))
-tukey.error.testing <- TukeyHSD(anova.error.testing)
-# Stats
-effectsize(anova.error.all, verbose = F)
-anova.error.all %>% summary()
-tukey.error.all
-tukey.error.all %>% plot()
-title(main = "total error (all)", line = 1)
-
-effectsize(anova.error.practice, verbose = F)
-anova.error.practice %>% summary()
-tukey.error.practice
-tukey.error.practice %>% plot()
-title(main = "total error (practice)", line = 1)
-
-effectsize(anova.error.testing, verbose = F)
-anova.error.testing %>% summary()
-tukey.error.testing
-tukey.error.testing %>% plot()
-title(main = "total error (testing)", line = 1)
-
-#### Performance: Error Per Selection ####
-
-# Box plots
-sections.completed %>% ggplot(aes(x = user.protocol, y = error_per_selection, col = section)) + geom_boxplot()
+sections.completed %>% 
+  ggplot(aes(x = user.protocol, y = error_per_selection, fill = section)) +
+  geom_boxplot() +
+  labs(x = "Protocol", y = "Error per selection") +
+  theme(
+    legend.background = element_blank(),
+    legend.direction = "horizontal",
+    legend.key = element_blank(),
+    legend.position = c(.5, .94),
+    legend.title = element_blank()
+  )
 # Tests
 anova.avg_error.all <- aov(error_per_selection ~ user.protocol, data = sections.completed)
 tukey.avg_error.all <- TukeyHSD(anova.avg_error.all)
@@ -264,37 +263,86 @@ tukey.avg_error.practice <- TukeyHSD(anova.avg_error.practice)
 anova.avg_error.testing <- aov(error_per_selection ~ user.protocol, data = sections.completed %>% filter(section == "testing"))
 tukey.avg_error.testing <- TukeyHSD(anova.avg_error.testing)
 # Stats
-effectsize(anova.avg_error.all, verbose = F)
 anova.avg_error.all %>% summary()
+effectsize(anova.avg_error.all, verbose = F)
 tukey.avg_error.all
 tukey.avg_error.all %>% plot()
-title(main = "error per selection (all)", line = 1)
+title(main = "Error per selection (all)", line = 1)
 
-effectsize(anova.avg_error.practice, verbose = F)
 anova.avg_error.practice %>% summary()
+effectsize(anova.avg_error.practice, verbose = F)
 tukey.avg_error.practice
 tukey.avg_error.practice %>% plot()
-title(main = "error per selection (practice)", line = 1)
+title(main = "Error per selection (practice)", line = 1)
 
-effectsize(anova.avg_error.testing, verbose = F)
 anova.avg_error.testing %>% summary()
+effectsize(anova.avg_error.testing, verbose = F)
 tukey.avg_error.testing
 tukey.avg_error.testing %>% plot()
-title(main = "error per selection (testing)", line = 1)
+title(main = "Error per selection (testing)", line = 1)
+
+# TOST
+tost.avg_error.all.NP <- t_TOST(error_per_selection ~ user.protocol, data = sections.completed %>% filter(user.protocol != "actionable"), eqb = .5)
+tost.avg_error.all.NA <- t_TOST(error_per_selection ~ user.protocol, data = sections.completed %>% filter(user.protocol != "placebic"), eqb = .5)
+tost.avg_error.all.PA <- t_TOST(error_per_selection ~ user.protocol, data = sections.completed %>% filter(user.protocol != "none"), eqb = .5)
+
+tost.avg_error.practice.NP <- t_TOST(error_per_selection ~ user.protocol, data = sections.completed %>% filter(user.protocol != "actionable", section == "practice"), eqb = .5)
+tost.avg_error.practice.NA <- t_TOST(error_per_selection ~ user.protocol, data = sections.completed %>% filter(user.protocol != "placebic", section == "practice"), eqb = .5)
+tost.avg_error.practice.PA <- t_TOST(error_per_selection ~ user.protocol, data = sections.completed %>% filter(user.protocol != "none", section == "practice"), eqb = .5)
+
+tost.avg_error.testing.NP <- t_TOST(error_per_selection ~ user.protocol, data = sections.completed %>% filter(user.protocol != "actionable", section == "testing"), eqb = .5)
+tost.avg_error.testing.NA <- t_TOST(error_per_selection ~ user.protocol, data = sections.completed %>% filter(user.protocol != "placebic", section == "testing"), eqb = .5)
+tost.avg_error.testing.PA <- t_TOST(error_per_selection ~ user.protocol, data = sections.completed %>% filter(user.protocol != "none", section == "testing"), eqb = .5)
+
+tost.avg_error.all.NP
+tost.avg_error.all.NP %>% plot()
+tost.avg_error.all.NA
+tost.avg_error.all.NA %>% plot()
+tost.avg_error.all.PA
+tost.avg_error.all.PA %>% plot()
+
+tost.avg_error.practice.NP
+tost.avg_error.practice.NP %>% plot()
+tost.avg_error.practice.NA
+tost.avg_error.practice.NA %>% plot()
+tost.avg_error.practice.PA
+tost.avg_error.practice.PA %>% plot()
+
+tost.avg_error.testing.NP
+tost.avg_error.testing.NP %>% plot()
+tost.avg_error.testing.NA
+tost.avg_error.testing.NA %>% plot()
+tost.avg_error.testing.PA
+tost.avg_error.testing.PA %>% plot()
 
 #### Performance: Bonus Compensation ####
 
 # Box plots
-users.completed %>% ggplot(aes(x = protocol, y = bonus_comp)) + geom_boxplot()
+users.completed %>% rename(user.protocol = protocol) %>% 
+  ggplot(aes(x = user.protocol, y = bonus_comp)) +
+  geom_boxplot() +
+  labs(x = "Protocol", y = "Bonus Compensation")
 # Tests
-anova.bonus_comp <- aov(bonus_comp ~ protocol, data = users.completed)
+anova.bonus_comp <- aov(bonus_comp ~ user.protocol, data = users.completed %>% rename(user.protocol = protocol))
 tukey.bonus_comp <- TukeyHSD(anova.bonus_comp)
 # Stats
-effectsize(anova.bonus_comp, verbose = F)
 anova.bonus_comp %>% summary()
+effectsize(anova.bonus_comp, verbose = F)
 tukey.bonus_comp
 tukey.bonus_comp %>% plot()
-title(main = "bonus compensation", line = 1)
+title(main = "Bonus compensation", line = 1)
+
+# TOST
+tost.bonus_comp.NP <- t_TOST(bonus_comp ~ user.protocol, data = users.completed %>% rename(user.protocol = protocol) %>% filter(user.protocol != "actionable"), eqb = .1)
+tost.bonus_comp.NA <- t_TOST(bonus_comp ~ user.protocol, data = users.completed %>% rename(user.protocol = protocol) %>% filter(user.protocol != "placebic"), eqb = .1)
+tost.bonus_comp.PA <- t_TOST(bonus_comp ~ user.protocol, data = users.completed %>% rename(user.protocol = protocol) %>% filter(user.protocol != "none"), eqb = .1)
+
+tost.bonus_comp.NP
+tost.bonus_comp.NP %>% plot()
+tost.bonus_comp.NA
+tost.bonus_comp.NA %>% plot()
+tost.bonus_comp.PA
+tost.bonus_comp.PA %>% plot()
 
 #### Performance: Learning by Theme ####
 
@@ -360,65 +408,14 @@ scenario_errors %>%
     title = "Scenario Error Progression by Section",
     x = "Scenario number",
     y = "Error per selection",
-    color = "User protocol"
+    color = "Protocol"
   ) +
   theme(
     panel.grid.minor.x = element_blank(),
     legend.position = c(.14, .86)
   )
 
-#### Final Surveys: Total ####
-
-# Data wrangling
-final_surveys.sat_outcome <- final_surveys.completed %>% 
-  select(user.protocol, sat.outcome.1, sat.outcome.2, sat.outcome.3) %>% 
-  pivot_longer(starts_with("sat.outcome"), names_to = NULL, values_to = "sat.outcome")
-final_surveys.sat_agent <- final_surveys.completed %>% 
-  select(user.protocol, sat.agent.1, sat.agent.2, sat.agent.3) %>% 
-  pivot_longer(starts_with("sat.agent"), names_to = NULL, values_to = "sat.agent")
-final_surveys.exp_power <- final_surveys.completed %>% 
-  select(user.protocol, exp.power.1, exp.power.2, exp.power.3) %>% 
-  pivot_longer(starts_with("exp.power"), names_to = NULL, values_to = "exp.power")
-# Box plots
-final_surveys.sat_outcome %>% ggplot(aes(x = user.protocol, y = sat.outcome)) +
-  geom_boxplot() + 
-  ylim(1,7) + 
-  ggtitle("Satisfaction with Practice by Protocol")
-final_surveys.sat_agent %>% filter(user.protocol != "none") %>% ggplot(aes(x = user.protocol, y = sat.agent)) +
-  geom_boxplot() + 
-  ylim(1,7) + 
-  ggtitle("Satisfaction with Agent by Protocol")
-final_surveys.exp_power %>% filter(user.protocol != "none") %>% ggplot(aes(x = user.protocol, y = exp.power)) +
-  geom_boxplot() + 
-  ylim(1,7) + 
-  ggtitle("Explanatory Power by Protocol")
-# Tests
-anova.sat.practice.total <- aov(sat.outcome ~ user.protocol, data = final_surveys.sat_outcome)
-tukey.sat.practice.total <- TukeyHSD(anova.sat.practice.total)
-anova.sat.agent.total <- aov(sat.agent ~ user.protocol, data = final_surveys.sat_agent %>% filter(user.protocol != "none"))
-tukey.sat.agent.total <- TukeyHSD(anova.sat.agent.total)
-anova.exp.power.total <- aov(exp.power ~ user.protocol, data = final_surveys.exp_power %>% filter(user.protocol != "none"))
-tukey.exp.power.total <- TukeyHSD(anova.exp.power.total)
-# Stats
-effectsize(anova.sat.practice.total, verbose = F)
-anova.sat.practice.total %>% summary()
-tukey.sat.practice.total
-tukey.sat.practice.total %>% plot()
-title(main = "Satisfaction with practice section", line = 1)
-
-effectsize(anova.sat.agent.total, verbose = F)
-anova.sat.agent.total %>% summary()
-tukey.sat.agent.total
-tukey.sat.agent.total %>% plot()
-title(main = "Satisfaction with agent", line = 1)
-
-effectsize(anova.exp.power.total, verbose = F)
-anova.exp.power.total %>% summary()
-tukey.exp.power.total
-tukey.exp.power.total %>% plot()
-title(main = "Explanatory power", line = 1)
-
-#### Final Surveys: Averaged ####
+#### Final Surveys ####
 
 # Data wrangling
 final_surveys.averaged <- final_surveys.completed %>% 
@@ -429,17 +426,17 @@ final_surveys.averaged <- final_surveys.completed %>%
   )
 # Box plots
 final_surveys.averaged %>% ggplot(aes(x = user.protocol, y = sat.practice)) +
-  geom_boxplot() + 
-  ylim(1,7) + 
-  ggtitle("Satisfaction with Practice by Protocol")
+  geom_boxplot() +
+  ylim(1,7) +
+  labs(x = "Protocol", y = "Satisfaction with practice")
 final_surveys.averaged %>% filter(user.protocol != "none") %>% ggplot(aes(x = user.protocol, y = sat.agent)) +
-  geom_boxplot() + 
+  geom_boxplot() +
   ylim(1,7) + 
-  ggtitle("Satisfaction with Agent by Protocol")
+  labs(x = "Protocol", y = "Satisfaction with agent")
 final_surveys.averaged %>% filter(user.protocol != "none") %>% ggplot(aes(x = user.protocol, y = exp.power)) +
-  geom_boxplot() + 
-  ylim(1,7) + 
-  ggtitle("Explanatory Power by Protocol")
+  geom_boxplot() +
+  ylim(1,7) +
+  labs(x = "Protocol", y = "Explanatory power")
 # Tests
 anova.sat.practice.avg <- aov(sat.practice ~ user.protocol, data = final_surveys.averaged)
 tukey.sat.practice.avg <- TukeyHSD(anova.sat.practice.avg)
@@ -448,20 +445,102 @@ tukey.sat.agent.avg <- TukeyHSD(anova.sat.agent.avg)
 anova.exp.power.avg <- aov(exp.power ~ user.protocol, data = final_surveys.averaged %>% filter(user.protocol != "none"))
 tukey.exp.power.avg <- TukeyHSD(anova.exp.power.avg)
 # Stats
-effectsize(anova.sat.practice.avg, verbose = F)
 anova.sat.practice.avg %>% summary()
+effectsize(anova.sat.practice.avg, verbose = F)
 tukey.sat.practice.avg
 tukey.sat.practice.avg %>% plot()
 title(main = "Satisfaction with practice section", line = 1)
 
-effectsize(anova.sat.agent.avg, verbose = F)
 anova.sat.agent.avg %>% summary()
+effectsize(anova.sat.agent.avg, verbose = F)
 tukey.sat.agent.avg
 tukey.sat.agent.avg %>% plot()
 title(main = "Satisfaction with agent", line = 1)
 
-effectsize(anova.exp.power.avg, verbose = F)
 anova.exp.power.avg %>% summary()
+effectsize(anova.exp.power.avg, verbose = F)
 tukey.exp.power.avg
 tukey.exp.power.avg %>% plot()
 title(main = "Explanatory power", line = 1)
+
+# TOST
+tost.sat_practice.avg.NP <- t_TOST(sat.practice ~ user.protocol, data = final_surveys.averaged %>% filter(user.protocol != "actionable"), eqb = .5)
+tost.sat_practice.avg.NA <- t_TOST(sat.practice ~ user.protocol, data = final_surveys.averaged %>% filter(user.protocol != "placebic"), eqb = .5)
+tost.sat_practice.avg.PA <- t_TOST(sat.practice ~ user.protocol, data = final_surveys.averaged %>% filter(user.protocol != "none"), eqb = .5)
+tost.sat_agent.avg <- t_TOST(sat.agent ~ user.protocol, data = final_surveys.averaged %>% filter(user.protocol != "none"), eqb = .5)
+tost.exp_power.avg <- t_TOST(exp.power ~ user.protocol, data = final_surveys.averaged %>% filter(user.protocol != "none"), eqb = .5)
+
+tost.sat_practice.avg.NP
+tost.sat_practice.avg.NP %>% plot()
+tost.sat_practice.avg.NA
+tost.sat_practice.avg.NA %>% plot()
+tost.sat_practice.avg.PA
+tost.sat_practice.avg.PA %>% plot()
+tost.sat_agent.avg
+tost.sat_agent.avg %>% plot()
+tost.exp_power.avg
+tost.exp_power.avg %>% plot()
+
+#### Correlating Survey with Performance: Error ####
+
+final_surveys.averaged %>% inner_join(sections.completed, join_by(mturk_id)) %>% filter(section == "testing") %>% 
+  ggplot(aes(x = error_per_selection, y = sat.practice)) +
+  geom_point() + geom_smooth(method = lm) +
+  labs(x = "Error per selection", y = "Satisfaction with practice")
+cor.test(
+  (final_surveys.averaged %>% inner_join(sections.completed, join_by(mturk_id)) %>% filter(section == "testing"))$sat.practice,
+  (final_surveys.averaged %>% inner_join(sections.completed, join_by(mturk_id)) %>% filter(section == "testing"))$error_per_selection,
+  method = "pearson"
+)
+
+final_surveys.averaged %>% inner_join(sections.completed, join_by(mturk_id, user.protocol)) %>% filter(section == "testing", user.protocol != "none") %>% 
+  ggplot(aes(x = error_per_selection, y = sat.agent)) +
+  geom_jitter(height=.1) + geom_smooth(method = lm) +
+  labs(x = "Error per selection", y = "Satisfaction with agent")
+cor.test(
+  (final_surveys.averaged %>% inner_join(sections.completed, join_by(mturk_id, user.protocol)) %>% filter(section == "testing", user.protocol != "none"))$sat.agent,
+  (final_surveys.averaged %>% inner_join(sections.completed, join_by(mturk_id, user.protocol)) %>% filter(section == "testing", user.protocol != "none"))$error_per_selection,
+  method = "pearson"
+)
+
+final_surveys.averaged %>% inner_join(sections.completed, join_by(mturk_id, user.protocol)) %>% filter(section == "testing", user.protocol != "none") %>% 
+  ggplot(aes(x = error_per_selection, y = exp.power)) +
+  geom_point() + geom_smooth(method = lm) +
+  labs(x = "Error per selection", y = "Explanatory power")
+cor.test(
+  (final_surveys.averaged %>% inner_join(sections.completed, join_by(mturk_id, user.protocol)) %>% filter(section == "testing", user.protocol != "none"))$exp.power,
+  (final_surveys.averaged %>% inner_join(sections.completed, join_by(mturk_id, user.protocol)) %>% filter(section == "testing", user.protocol != "none"))$error_per_selection,
+  method = "pearson"
+)
+
+#### Correlating Survey with Performance: Bonus ####
+
+final_surveys.averaged %>% inner_join(users.completed) %>% 
+  ggplot(aes(x = bonus_comp, y = sat.practice)) +
+  geom_jitter(height=.1) + geom_smooth(method = lm) +
+  labs(x = "Bonus compensation", y = "Satisfaction with practice section")
+cor.test(
+  (final_surveys.averaged %>% inner_join(users.completed))$sat.practice,
+  (final_surveys.averaged %>% inner_join(users.completed))$bonus_comp,
+  method = "pearson"
+)
+
+final_surveys.averaged %>% inner_join(users.completed) %>% filter(user.protocol != "none") %>% 
+  ggplot(aes(x = bonus_comp, y = sat.agent)) +
+  geom_jitter(height=.1) + geom_smooth(method = lm) +
+  labs(x = "Bonus compensation", y = "Satisfaction with agent")
+cor.test(
+  (final_surveys.averaged %>% inner_join(users.completed) %>% filter(user.protocol != "none"))$sat.agent,
+  (final_surveys.averaged %>% inner_join(users.completed) %>% filter(user.protocol != "none"))$bonus_comp,
+  method = "pearson"
+)
+
+final_surveys.averaged %>% inner_join(users.completed) %>% filter(user.protocol != "none") %>% 
+  ggplot(aes(x = bonus_comp, y = exp.power)) +
+  geom_jitter(height=.1) + geom_smooth(method = lm) +
+  labs(x = "Bonus compensation", y = "Explanatory power")
+cor.test(
+  (final_surveys.averaged %>% inner_join(users.completed) %>% filter(user.protocol != "none"))$exp.power,
+  (final_surveys.averaged %>% inner_join(users.completed) %>% filter(user.protocol != "none"))$bonus_comp,
+  method = "pearson"
+)
